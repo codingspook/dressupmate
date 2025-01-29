@@ -346,7 +346,7 @@ function AddClothingForm({
                                                         startCamera();
                                                     }}>
                                                     <Camera size={16} />
-                                                    Scatta un'altra foto
+                                                    Scatta un&apos; altra foto
                                                 </Button>
                                             ) : (
                                                 <Button

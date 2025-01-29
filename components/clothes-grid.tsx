@@ -24,7 +24,7 @@ export function ClothesGrid({ items, onEdit, onDelete }: ClothesGridProps) {
                     Nessun capo presente in questa categoria
                 </p>
                 <p className="text-sm text-muted-foreground">
-                    Aggiungi il tuo primo capo cliccando sul pulsante "Aggiungi capo"
+                    Aggiungi il tuo primo capo cliccando sul pulsante &quot;Aggiungi capo&quot;
                 </p>
             </div>
         );
