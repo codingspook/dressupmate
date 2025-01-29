@@ -1,40 +1,32 @@
-# Next.js & NextUI Template
+# DressUpMate
 
-This is a template for creating applications using Next.js 13 (app directory) and NextUI (v2).
+## Overview
+DressUpMate is a digital wardrobe management application that helps users organize and coordinate their clothing items.
 
-## Technologies Used
+## Features
+- Digital wardrobe organization
+- Outfit suggestions
+- Clothing inventory management
+- Weather-based recommendations
 
-- [Next.js 13](https://nextjs.org/docs/getting-started)
-- [NextUI v2](https://nextui.org/)
-- [Tailwind CSS](https://tailwindcss.com/)
-- [Tailwind Variants](https://tailwind-variants.org)
-- [TypeScript](https://www.typescriptlang.org/)
-- [Framer Motion](https://www.framer.com/motion/)
-- [next-themes](https://github.com/pacocoursey/next-themes)
-
-## How to Use
-
-
-### Use the template with create-next-app
-
-To create a new project based on this template using `create-next-app`, run the following command:
-
+## Installation
 ```bash
-npx create-next-app -e https://github.com/nextui-org/next-app-template
-```
+# Clone the repository
+git clone https://github.com/yourusername/dressupmate.git
 
-### Install dependencies
+# Navigate to project directory
+cd dressupmate
 
-```bash
+# Install dependencies
 npm install
 ```
 
-### Run the development server
-
-```bash
-npm run dev
-```
+## Contributing
+1. Fork the repository
+2. Create your feature branch (`git checkout -b feature/AmazingFeature`)
+3. Commit your changes (`git commit -m 'Add some AmazingFeature'`)
+4. Push to the branch (`git push origin feature/AmazingFeature`)
+5. Open a Pull Request
 
 ## License
-
-Licensed under the [MIT license](https://github.com/nextui-org/next-app-template/blob/main/LICENSE).
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
