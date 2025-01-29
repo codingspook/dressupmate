@@ -12,7 +12,7 @@ DressUpMate is a digital wardrobe management application that helps users organi
 ## Installation
 ```bash
 # Clone the repository
-git clone https://github.com/yourusername/dressupmate.git
+git clone https://github.com/codingspook/dressupmate.git
 
 # Navigate to project directory
 cd dressupmate
