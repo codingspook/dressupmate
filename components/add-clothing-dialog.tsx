@@ -382,7 +382,7 @@ function AddClothingForm({
                                                     variant="ghost"
                                                     className="gap-2">
                                                     <Image />
-                                                    Carica un'immagine
+                                                    Carica un&apos;immagine
                                                 </Button>
                                             </div>
                                         )}
