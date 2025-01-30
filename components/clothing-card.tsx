@@ -22,13 +22,14 @@ interface ClothingCardProps {
 }
 
 export function ClothingCard({ item, onEdit, onDelete }: ClothingCardProps) {
-    if (!item) {
-        return <div>No item data available</div>;
-    }
 
     const getColor = useCallback((color: string) => {
         return BASIC_COLORS.find((c) => c.name === color);
     }, []);
+    
+    if (!item) {
+        return <div>No item data available</div>;
+    }
 
     return (
         <Card className="w-full max-w-sm overflow-hidden">
