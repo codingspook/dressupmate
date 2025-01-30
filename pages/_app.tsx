@@ -4,6 +4,7 @@ import "@/styles/globals.css";
 import { ThemeProvider } from "next-themes";
 import { ReactElement, ReactNode } from "react";
 import { NextPage } from "next";
+import Head from "next/head";
 
 export type NextPageWithLayout<P = {}, IP = P> = NextPage<P, IP> & {
     getLayout?: (page: ReactElement) => ReactNode;

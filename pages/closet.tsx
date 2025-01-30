@@ -11,7 +11,6 @@ import { createClient as createServerClient } from "@/utils/supabase/server-prop
 import { createClient } from "@/utils/supabase/component";
 import { GetServerSidePropsContext } from "next";
 import { ReactElement, useState, useEffect, useRef } from "react";
-import { AnimatePresence } from "framer-motion";
 import { ConfirmDeleteDialog } from "@/components/confirm-delete-dialog";
 
 interface ClosetPageProps {
@@ -22,7 +21,7 @@ interface ClosetPageProps {
 export const getServerSideProps = async (context: GetServerSidePropsContext) => {
     const supabase = createServerClient(context);
 
-    const { data: categories } = await supabase.from("categories").select("*");
+    const { data: categories } = await supabase.from("categories").select("*").order("order");
     const { data: clothes } = await supabase.from("clothes").select("*");
 
     // Inizializza l'oggetto clothesByCategory con array vuoti per ogni categoria
@@ -83,13 +82,13 @@ export default function ClosetPage({ categories, clothes: initialClothes }: Clos
     const handleClothingAdded = (newClothing: ClothingItem) => {
         setClothes((prev) => {
             const newClothes = { ...prev };
-            if (!newClothes[newClothing.category_id]) {
-                newClothes[newClothing.category_id] = [];
+            const categoryId = newClothing.category_id;
+            if (categoryId && !newClothes[categoryId]) {
+                newClothes[categoryId] = [];
             }
-            newClothes[newClothing.category_id] = [
-                ...newClothes[newClothing.category_id],
-                newClothing,
-            ];
+            if (categoryId) {
+                newClothes[categoryId] = [...newClothes[categoryId], newClothing];
+            }
             return newClothes;
         });
     };
@@ -112,9 +111,11 @@ export default function ClosetPage({ categories, clothes: initialClothes }: Clos
 
         setClothes((prev) => {
             const newClothes = { ...prev };
-            newClothes[item.category_id] = newClothes[item.category_id].filter(
-                (i) => i.id !== item.id
-            );
+            if (item.category_id) {
+                newClothes[item.category_id] = newClothes[item.category_id].filter(
+                    (i) => i.id !== item.id
+                );
+            }
             return newClothes;
         });
 
@@ -131,22 +132,24 @@ export default function ClosetPage({ categories, clothes: initialClothes }: Clos
             const categoryId = updatedItem.category_id;
 
             // Se la categoria è cambiata, rimuovi dall'vecchia categoria
-            if (editingItem && editingItem.category_id !== categoryId) {
+            if (editingItem && editingItem.category_id && editingItem.category_id !== categoryId) {
                 newClothes[editingItem.category_id] = newClothes[editingItem.category_id].filter(
                     (i) => i.id !== updatedItem.id
                 );
             }
 
             // Aggiorna o aggiungi alla nuova categoria
-            if (!newClothes[categoryId]) {
+            if (categoryId && !newClothes[categoryId]) {
                 newClothes[categoryId] = [];
             }
 
-            const index = newClothes[categoryId].findIndex((i) => i.id === updatedItem.id);
-            if (index !== -1) {
-                newClothes[categoryId][index] = updatedItem;
-            } else {
-                newClothes[categoryId].push(updatedItem);
+            if (categoryId) {
+                const index = newClothes[categoryId].findIndex((i) => i.id === updatedItem.id);
+                if (index !== -1) {
+                    newClothes[categoryId][index] = updatedItem;
+                } else {
+                    newClothes[categoryId].push(updatedItem);
+                }
             }
 
             return newClothes;
@@ -190,7 +193,7 @@ export default function ClosetPage({ categories, clothes: initialClothes }: Clos
                                     key={category.id}
                                     value={category.id}
                                     onClick={handleTabClick}
-                                    className="group flex-1 p-3 data-[state=active]:bg-muted data-[state=active]:shadow-none rounded-md gap-2">
+                                    className="group flex-1 p-3 data-[state=active]:bg-muted data-[state=active]:shadow-none rounded-2xl gap-2">
                                     {category.name}
                                     {clothes[category.id]?.length > 0 && (
                                         <Badge className="min-w-[1.375rem] px-1 transition-opacity group-data-[state=inactive]:opacity-50 flex-none text-center flex justify-center">

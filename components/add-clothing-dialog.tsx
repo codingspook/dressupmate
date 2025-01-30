@@ -16,14 +16,6 @@ import {
     DrawerTitle,
     DrawerTrigger,
 } from "@/components/ui/drawer";
-import { useMediaQuery } from "@/hooks/use-media-query";
-import { useToast } from "@/hooks/use-toast";
-import { Category, ClothingItem } from "@/types";
-import { createClient } from "@/utils/supabase/component";
-import { Camera, Image, Plus, Trash, X } from "lucide-react";
-import { useEffect, useRef, useState } from "react";
-import { useForm } from "react-hook-form";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "./ui/select";
 import {
     Form,
     FormControl,
@@ -33,22 +25,17 @@ import {
     FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
+import { BASIC_COLORS, SIZES } from "@/config/constants";
+import { useMediaQuery } from "@/hooks/use-media-query";
+import { useToast } from "@/hooks/use-toast";
+import { Category, ClothingItem } from "@/types";
+import { createClient } from "@/utils/supabase/component";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { Camera, Image, Plus, Trash } from "lucide-react";
+import { useEffect, useRef, useState } from "react";
+import { useForm } from "react-hook-form";
 import * as z from "zod";
-import { PictureFrame } from "iconsax-react";
-
-const BASIC_COLORS = [
-    { name: "Bianco", value: "#FFFFFF" },
-    { name: "Nero", value: "#000000" },
-    { name: "Grigio", value: "#808080" },
-    { name: "Rosso", value: "#FF0000" },
-    { name: "Blu", value: "#0000FF" },
-    { name: "Verde", value: "#008000" },
-    { name: "Giallo", value: "#FFFF00" },
-    { name: "Marrone", value: "#964B00" },
-    { name: "Viola", value: "#800080" },
-    { name: "Rosa", value: "#FFC0CB" },
-];
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "./ui/select";
 
 const formSchema = z.object({
     name: z.string().min(2, "Nome richiesto"),
@@ -226,11 +213,25 @@ function AddClothingForm({
                             control={form.control}
                             name="size"
                             render={({ field }) => (
-                                <FormItem>
+                                <FormItem className="space-y-2">
                                     <FormLabel>Taglia</FormLabel>
-                                    <FormControl>
-                                        <Input placeholder="Es: M" {...field} />
-                                    </FormControl>
+                                    <div className="flex flex-wrap gap-2">
+                                        {SIZES.map((size) => (
+                                            <FormControl key={size.value}>
+                                                <Button
+                                                    type="button"
+                                                    variant={
+                                                        field.value === size.value
+                                                            ? "default"
+                                                            : "outline"
+                                                    }
+                                                    className={`px-6`}
+                                                    onClick={() => field.onChange(size.value)}>
+                                                    {size.label}
+                                                </Button>
+                                            </FormControl>
+                                        ))}
+                                    </div>
                                     <FormMessage />
                                 </FormItem>
                             )}
@@ -252,13 +253,9 @@ function AddClothingForm({
                                                         ? "ring-2 ring-primary"
                                                         : ""
                                                 }`}
+                                                style={{ backgroundColor: color.value }}
                                                 title={color.name}
-                                                onClick={() => field.onChange(color.name)}>
-                                                <div
-                                                    className="w-full h-full rounded-sm border"
-                                                    style={{ backgroundColor: color.value }}
-                                                />
-                                            </Button>
+                                                onClick={() => field.onChange(color.name)}></Button>
                                         ))}
                                     </div>
                                     <FormMessage />
@@ -299,14 +296,14 @@ function AddClothingForm({
                                 <video
                                     ref={videoRef}
                                     autoPlay
-                                    className="w-full h-[300px] object-cover rounded-md border"
+                                    className="w-full h-[300px] object-cover rounded-2xl border"
                                 />
                                 <Button
-                                    className="absolute bottom-3 left-1/2 -translate-x-1/2 rounded-full size-12 border-2 border-white p-0.5 bg-transparent"
+                                    className="absolute bottom-3 left-1/2 -translate-x-1/2 rounded-2xl size-12 border-2 border-white p-0.5 bg-transparent"
                                     type="button"
                                     onClick={capturePhoto}>
                                     <span className="sr-only">Cattura foto</span>
-                                    <span className="size-full flex items-center justify-center bg-white rounded-full">
+                                    <span className="size-full flex items-center justify-center bg-white rounded-2xl">
                                         <Camera size={24} />
                                     </span>
                                 </Button>
@@ -325,7 +322,7 @@ function AddClothingForm({
                                         <img
                                             src={photoPreview}
                                             alt="Preview"
-                                            className="w-full h-[300px] object-cover rounded-md border"
+                                            className="w-full h-[300px] object-cover rounded-2xl border"
                                         />
                                         <div className="absolute inset-0 bg-gradient-to-t from-background/80 to-30% to-transparent bg-opacity-0.5" />
                                         <Button
@@ -360,10 +357,10 @@ function AddClothingForm({
                                         </div>
                                     </div>
                                 ) : (
-                                    <div className="w-full h-[300px] border rounded-md flex items-center justify-center">
+                                    <div className="w-full h-[300px] border rounded-2xl flex items-center justify-center">
                                         {isCameraLoading ? (
                                             <div className="flex flex-col items-center gap-2 bg-gray-900">
-                                                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900" />
+                                                <div className="animate-spin rounded-2xl h-8 w-8 border-b-2 border-gray-900" />
                                                 <p>Caricamento fotocamera...</p>
                                             </div>
                                         ) : (

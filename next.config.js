@@ -5,6 +5,9 @@ const nextConfig = {
         locales: ["it", "en"],
         defaultLocale: "it",
     },
+    images: {
+        domains: ["qnsayahexjstxxbjztvz.supabase.co"],
+    },
 };
 
 module.exports = nextConfig;

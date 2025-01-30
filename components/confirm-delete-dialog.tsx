@@ -27,7 +27,7 @@ export function ConfirmDeleteDialog({
     return (
         <AlertDialog open={open} onOpenChange={onOpenChange}>
             <AlertDialogContent
-                className="rounded-lg"
+                className="rounded-3xl sm:rounded-3xl"
                 style={{ width: "calc(100% - 32px)", maxWidth: "500px", margin: "16px auto" }}>
                 <AlertDialogHeader>
                     <AlertDialogTitle>{title}</AlertDialogTitle>

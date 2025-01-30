@@ -9,24 +9,25 @@ export interface Category {
   name: string;
   is_editable: string;
   user_id: string;
+  order: number;
   created_at: string;
 }
 
 export interface ClothingItem {
-  id: string;
-  name: string;
-  category_id: string;
-  brand: string;
-  size: string;
-  color: string;
-  season: string;
-  purchase_date: string;
-  price: number;
-  notes: string;
-  image_url: string;
-  is_favorite: boolean;
-  user_id: string;
-  created_at: string;
+  id: string
+  name: string
+  brand: string | null
+  category_id: string | null
+  color: string | null
+  created_at: string | null
+  image_url: string | null
+  is_favorite: boolean | null
+  notes: string | null
+  price: number | null
+  purchase_date: string | null
+  season: string | null
+  size: string | null
+  user_id: string | null
 }
 
 export interface Outfit {

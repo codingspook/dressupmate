@@ -2,16 +2,12 @@ import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import {
     Drawer,
+    DrawerClose,
     DrawerContent,
+    DrawerFooter,
     DrawerHeader,
     DrawerTitle,
-    DrawerFooter,
-    DrawerClose,
 } from "@/components/ui/drawer";
-import { Category, ClothingItem } from "@/types";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { useForm } from "react-hook-form";
-import { z } from "zod";
 import {
     Form,
     FormControl,
@@ -28,10 +24,14 @@ import {
     SelectTrigger,
     SelectValue,
 } from "@/components/ui/select";
-import { useToast } from "@/hooks/use-toast";
-import { createClient } from "@/utils/supabase/component";
 import { useMediaQuery } from "@/hooks/use-media-query";
+import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
+import { Category, ClothingItem } from "@/types";
+import { createClient } from "@/utils/supabase/component";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useForm } from "react-hook-form";
+import { z } from "zod";
 
 const formSchema = z.object({
     name: z.string().min(2, "Nome richiesto"),
@@ -75,83 +75,85 @@ function EditClothingForm({
 
     return (
         <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className={cn("space-y-4", className)}>
-                <FormField
-                    control={form.control}
-                    name="category_id"
-                    render={({ field }) => (
-                        <FormItem>
-                            <FormLabel>Categoria</FormLabel>
-                            <Select onValueChange={field.onChange} defaultValue={field.value}>
+            <form onSubmit={form.handleSubmit(onSubmit)} className={cn("space-y-6", className)}>
+                <div className="space-y-3">
+                    <FormField
+                        control={form.control}
+                        name="category_id"
+                        render={({ field }) => (
+                            <FormItem>
+                                <FormLabel>Categoria</FormLabel>
+                                <Select onValueChange={field.onChange} defaultValue={field.value}>
+                                    <FormControl>
+                                        <SelectTrigger>
+                                            <SelectValue placeholder="Seleziona categoria" />
+                                        </SelectTrigger>
+                                    </FormControl>
+                                    <SelectContent>
+                                        {categories.map((category) => (
+                                            <SelectItem key={category.id} value={category.id}>
+                                                {category.name}
+                                            </SelectItem>
+                                        ))}
+                                    </SelectContent>
+                                </Select>
+                                <FormMessage />
+                            </FormItem>
+                        )}
+                    />
+                    <FormField
+                        control={form.control}
+                        name="name"
+                        render={({ field }) => (
+                            <FormItem>
+                                <FormLabel>Nome</FormLabel>
                                 <FormControl>
-                                    <SelectTrigger>
-                                        <SelectValue placeholder="Seleziona categoria" />
-                                    </SelectTrigger>
+                                    <Input placeholder="Nome del capo" {...field} />
                                 </FormControl>
-                                <SelectContent>
-                                    {categories.map((category) => (
-                                        <SelectItem key={category.id} value={category.id}>
-                                            {category.name}
-                                        </SelectItem>
-                                    ))}
-                                </SelectContent>
-                            </Select>
-                            <FormMessage />
-                        </FormItem>
-                    )}
-                />
-                <FormField
-                    control={form.control}
-                    name="name"
-                    render={({ field }) => (
-                        <FormItem>
-                            <FormLabel>Nome</FormLabel>
-                            <FormControl>
-                                <Input placeholder="Nome del capo" {...field} />
-                            </FormControl>
-                            <FormMessage />
-                        </FormItem>
-                    )}
-                />
-                <FormField
-                    control={form.control}
-                    name="brand"
-                    render={({ field }) => (
-                        <FormItem>
-                            <FormLabel>Brand</FormLabel>
-                            <FormControl>
-                                <Input placeholder="Brand" {...field} />
-                            </FormControl>
-                            <FormMessage />
-                        </FormItem>
-                    )}
-                />
-                <FormField
-                    control={form.control}
-                    name="size"
-                    render={({ field }) => (
-                        <FormItem>
-                            <FormLabel>Taglia</FormLabel>
-                            <FormControl>
-                                <Input placeholder="Taglia" {...field} />
-                            </FormControl>
-                            <FormMessage />
-                        </FormItem>
-                    )}
-                />
-                <FormField
-                    control={form.control}
-                    name="color"
-                    render={({ field }) => (
-                        <FormItem>
-                            <FormLabel>Colore</FormLabel>
-                            <FormControl>
-                                <Input placeholder="Colore" {...field} />
-                            </FormControl>
-                            <FormMessage />
-                        </FormItem>
-                    )}
-                />
+                                <FormMessage />
+                            </FormItem>
+                        )}
+                    />
+                    <FormField
+                        control={form.control}
+                        name="brand"
+                        render={({ field }) => (
+                            <FormItem>
+                                <FormLabel>Brand</FormLabel>
+                                <FormControl>
+                                    <Input placeholder="Brand" {...field} />
+                                </FormControl>
+                                <FormMessage />
+                            </FormItem>
+                        )}
+                    />
+                    <FormField
+                        control={form.control}
+                        name="size"
+                        render={({ field }) => (
+                            <FormItem>
+                                <FormLabel>Taglia</FormLabel>
+                                <FormControl>
+                                    <Input placeholder="Taglia" {...field} />
+                                </FormControl>
+                                <FormMessage />
+                            </FormItem>
+                        )}
+                    />
+                    <FormField
+                        control={form.control}
+                        name="color"
+                        render={({ field }) => (
+                            <FormItem>
+                                <FormLabel>Colore</FormLabel>
+                                <FormControl>
+                                    <Input placeholder="Colore" {...field} />
+                                </FormControl>
+                                <FormMessage />
+                            </FormItem>
+                        )}
+                    />
+                </div>
                 <Button type="submit" className="w-full">
                     Salva modifiche
                 </Button>

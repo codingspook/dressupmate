@@ -1,8 +1,10 @@
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
-import { BlocksIcon, HomeIcon, ShirtIcon } from "lucide-react";
+import { BlocksIcon, HomeIcon, Settings, ShirtIcon } from "lucide-react";
 import Link from "next/link";
 import { useState } from "react";
+import { ThemeSwitch } from "./theme-switch";
+import { Separator } from "./ui/separator";
 
 export default function Navbar() {
     const [open, setOpen] = useState(false);
@@ -63,7 +65,7 @@ export default function Navbar() {
                 DressUpMate
                 <span className="sr-only">DressUpMate</span>
             </Link>
-            <nav className="ml-auto hidden lg:flex gap-6">
+            <nav className="ml-auto hidden lg:flex gap-2 h-7 items-center">
                 <Button variant="ghost" asChild>
                     <Link href="/closet" prefetch={false}>
                         <ShirtIcon />
@@ -74,6 +76,13 @@ export default function Navbar() {
                     <Link href="/categories" prefetch={false}>
                         <BlocksIcon />
                         Categorie
+                    </Link>
+                </Button>
+                <Separator orientation="vertical" />
+                <ThemeSwitch />
+                <Button variant="ghost" size="icon" asChild>
+                    <Link href="/settings" prefetch={false}>
+                        <Settings />
                     </Link>
                 </Button>
             </nav>
