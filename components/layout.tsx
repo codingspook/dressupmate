@@ -29,7 +29,7 @@ export default function Layout({ children }: LayoutProps) {
                 <main className="container flex-grow px-6 pt-8 mx-auto max-w-7xl mb-4">
                     {children}
                 </main>
-                <footer className="flex items-center justify-center w-full py-3">
+                <footer className="flex items-center justify-center w-full py-3 pb-safe">
                     <Link
                         target="_blank"
                         rel="noopener noreferrer"

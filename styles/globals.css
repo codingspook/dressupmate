@@ -66,6 +66,10 @@
 }
 
 @layer utilities {
+  .pb-safe {
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+  
     .no-scrollbar::-webkit-scrollbar {
         display: none;
     }
@@ -75,35 +79,5 @@
         scrollbar-width: none;
     }
 
-    .progressive-blur {
-      background: linear-gradient(
-          to top,
-          rgba(0, 0, 0, 0.9) 0%,
-          rgba(0, 0, 0, 0.8) 15%,
-          rgba(0, 0, 0, 0.6) 30%,
-          rgba(0, 0, 0, 0) 60%
-      );
-  }
-
-  @supports (backdrop-filter: blur(0)) {
-      .progressive-blur {
-          background: transparent;
-          backdrop-filter: blur(12px);
-          -webkit-backdrop-filter: blur(12px);
-          mask-image: linear-gradient(
-              to top,
-              black 0%,
-              black 15%,
-              rgba(0, 0, 0, 0.8) 30%,
-              transparent 60%
-          );
-          -webkit-mask-image: linear-gradient(
-              to top,
-              black 0%,
-              black 15%,
-              rgba(0, 0, 0, 0.8) 30%,
-              transparent 60%
-          );
-      }
-  }
+    
 }
