@@ -6,7 +6,7 @@ import { Reorder, useDragControls } from "framer-motion";
 import { GripVertical } from "lucide-react";
 
 import { GetServerSidePropsContext } from "next";
-import { ReactElement, useState } from "react";
+import { ReactElement, useEffect, useState } from "react";
 import Layout from "@/components/layout";
 import { Button } from "@/components/ui/button";
 import {
@@ -22,25 +22,6 @@ import { useToast } from "@/hooks/use-toast";
 import { PlusIcon, Pencil, Trash2 } from "lucide-react";
 import { createClient } from "@/utils/supabase/component";
 import { useMediaQuery } from "@/hooks/use-media-query";
-
-interface CategoriesPageProps {
-    categories: Category[];
-}
-
-export const getServerSideProps = async (context: GetServerSidePropsContext) => {
-    const supabase = createServerClient(context);
-    const { data: categories } = await supabase
-        .from("categories")
-        .select("*")
-        .eq("is_editable", true)
-        .order("order");
-
-    return {
-        props: {
-            categories: categories || [],
-        },
-    };
-};
 
 const CategoryItem = ({
     category,
@@ -62,7 +43,7 @@ const CategoryItem = ({
             className="flex items-center p-4 rounded-2xl border bg-card shadow-sm">
             <div
                 onPointerDown={(e) => dragControls.start(e)}
-                className="cursor-grab active:cursor-grabbing">
+                className="cursor-grab active:cursor-grabbing touch-none">
                 <GripVertical className="w-5 h-5 mr-4 text-muted-foreground" />
             </div>
             <div className="flex-1">
@@ -80,8 +61,8 @@ const CategoryItem = ({
     );
 };
 
-export default function CategoriesPage({ categories: initialCategories }: CategoriesPageProps) {
-    const [categories, setCategories] = useState<Category[]>(initialCategories);
+export default function CategoriesPage() {
+    const [categories, setCategories] = useState<Category[]>([]);
     const [isOpen, setIsOpen] = useState(false);
     const [editingCategory, setEditingCategory] = useState<Category | null>(null);
     const [categoryToDelete, setCategoryToDelete] = useState<Category | null>(null);
@@ -90,6 +71,28 @@ export default function CategoriesPage({ categories: initialCategories }: Catego
     const isMobile = useMediaQuery("(max-width: 767px)");
 
     const supabase = createClient();
+
+    useEffect(() => {
+        const fetchCategories = async () => {
+            const { data: categories, error } = await supabase
+                .from("categories")
+                .select("*")
+                .eq("is_editable", true)
+                .order("order");
+
+            if (error) {
+                toast({
+                    title: "Errore",
+                    description: "Errore durante il caricamento delle categorie",
+                    variant: "destructive",
+                });
+            }
+
+            setCategories(categories || []);
+        };
+
+        fetchCategories();
+    }, []);
 
     const updateOrder = async (reorderedItems: Category[]) => {
         const updates = reorderedItems.map((item, index) => ({
@@ -157,8 +160,6 @@ export default function CategoriesPage({ categories: initialCategories }: Catego
     };
 
     const handleDelete = async (category: Category) => {
-        const supabase = createClient();
-
         try {
             const { error } = await supabase.from("categories").delete().eq("id", category.id);
 

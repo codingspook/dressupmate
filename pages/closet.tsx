@@ -7,9 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/hooks/use-toast";
 import { Category, ClothingItem } from "@/types";
-import { createClient as createServerClient } from "@/utils/supabase/server-props";
 import { createClient } from "@/utils/supabase/component";
-import { GetServerSidePropsContext } from "next";
 import { ReactElement, useState, useEffect, useRef } from "react";
 import { ConfirmDeleteDialog } from "@/components/confirm-delete-dialog";
 import { Button } from "@/components/ui/button";
@@ -22,44 +20,11 @@ import {
 } from "@/components/ui/dropdown-menu";
 import EmptyList from "@/components/empty-list";
 import { cn } from "@/lib/utils";
+import { Skeleton } from "@/components/ui/skeleton"; // Add this import
 
-interface ClosetPageProps {
-    categories: Category[];
-    clothes: Record<string, ClothingItem[]>;
-}
-
-export const getServerSideProps = async (context: GetServerSidePropsContext) => {
-    const supabase = createServerClient(context);
-
-    const { data: categories } = await supabase.from("categories").select("*").order("order");
-    const { data: clothes } = await supabase
-        .from("clothes")
-        .select("*")
-        .order("created_at", { ascending: false });
-
-    // Inizializza l'oggetto clothesByCategory con array vuoti per ogni categoria
-    const clothesByCategory = categories?.reduce((acc, category) => {
-        acc[category.id] = [];
-        return acc;
-    }, {});
-
-    // Popola le categorie con i vestiti corrispondenti
-    clothes?.forEach((item) => {
-        if (clothesByCategory[item.category_id]) {
-            clothesByCategory[item.category_id].push(item);
-        }
-    });
-
-    return {
-        props: {
-            categories: categories || [],
-            clothes: clothesByCategory || {},
-        },
-    };
-};
-
-export default function ClosetPage({ categories, clothes: initialClothes }: ClosetPageProps) {
-    const [clothes, setClothes] = useState<ClosetPageProps["clothes"]>(initialClothes);
+export default function ClosetPage() {
+    const [clothes, setClothes] = useState<Record<string, ClothingItem[]>>({});
+    const [categories, setCategories] = useState<Category[]>([]);
     const [editingItem, setEditingItem] = useState<ClothingItem | null>(null);
     const supabase = createClient();
     const { toast } = useToast();
@@ -67,18 +32,63 @@ export default function ClosetPage({ categories, clothes: initialClothes }: Clos
     const [showRightShadow, setShowRightShadow] = useState(true);
     const scrollContainerRef = useRef<HTMLDivElement>(null);
     const [itemToDelete, setItemToDelete] = useState<ClothingItem | null>(null);
-    const [selectedCategory, setSelectedCategory] = useState<string | undefined>(categories[0]?.id);
+    const [selectedCategory, setSelectedCategory] = useState<string | undefined>();
     const [isSelectionMode, setIsSelectionMode] = useState(false);
     const [selectedItems, setSelectedItems] = useState<Set<string>>(new Set());
     const [favorites, setFavorites] = useState<ClothingItem[]>([]);
     const [currentView, setCurrentView] = useState<"wardrobe" | "favorites">("wardrobe");
+    const [isLoading, setIsLoading] = useState(true);
+
+    // Recupera i capi dal database
+    useEffect(() => {
+        const fetchClothes = async () => {
+            setIsLoading(true);
+            try {
+                const { data: clothes } = await supabase
+                    .from("clothes")
+                    .select("*")
+                    .order("created_at", { ascending: false });
+
+                const { data: categories } = await supabase
+                    .from("categories")
+                    .select("*")
+                    .order("order");
+
+                const clothesByCategory =
+                    categories?.reduce<Record<string, ClothingItem[]>>((acc, category) => {
+                        acc[category.id] = [];
+                        return acc;
+                    }, {}) || {};
+
+                clothes?.forEach((item) => {
+                    if (item.category_id && clothesByCategory[item.category_id]) {
+                        clothesByCategory[item.category_id].push(item);
+                    }
+                });
+
+                setClothes(clothesByCategory);
+                setCategories(categories || []);
+                setSelectedCategory(categories?.[0]?.id);
+            } catch (error) {
+                toast({
+                    variant: "destructive",
+                    title: "Errore",
+                    description: "Impossibile caricare i dati",
+                });
+            } finally {
+                setIsLoading(false);
+            }
+        };
+
+        fetchClothes();
+    }, []);
 
     useEffect(() => {
         // Inizializza i preferiti dal clothes iniziale
-        const allClothes = Object.values(initialClothes).flat();
+        const allClothes = Object.values(clothes).flat();
         const initialFavorites = allClothes.filter((item) => item.is_favorite);
         setFavorites(initialFavorites);
-    }, [initialClothes]);
+    }, [clothes]);
 
     const handleTabChange = (value: string) => {
         setSelectedCategory(value);
@@ -322,7 +332,20 @@ export default function ClosetPage({ categories, clothes: initialClothes }: Clos
                 </div>
             </div>
 
-            {currentView === "favorites" ? (
+            {isLoading ? (
+                <div className="mt-6 space-y-6">
+                    <div className="flex gap-2 overflow-hidden">
+                        {[1, 2, 3, 4].map((i) => (
+                            <Skeleton key={i} className="h-[2.875rem] w-32 rounded-2xl" />
+                        ))}
+                    </div>
+                    <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                        {[1, 2, 3, 4, 5, 6].map((i) => (
+                            <Skeleton key={i} className="aspect-[2/3] rounded-2xl" />
+                        ))}
+                    </div>
+                </div>
+            ) : currentView === "favorites" ? (
                 <div className="mt-8">
                     {favorites.length > 0 ? (
                         <ClothesGrid

@@ -15,6 +15,7 @@ import { ClothingItem } from "@/types";
 import { useCallback, useEffect, useState } from "react";
 import { Button } from "./ui/button";
 import { ProgressiveBlur } from "./ui/progressive-blur";
+import { colord } from "colord";
 
 interface ClothingCardProps {
     item: ClothingItem;
@@ -167,21 +168,26 @@ export function ClothingCard({
                     {item.brand && <p className="text-sm text-gray-200 mb-2">{item.brand}</p>}
                     <div className="flex flex-wrap gap-2 mb-2">
                         {item.color && (
-                            <Badge className="gap-1.5">
+                            <Badge className="gap-1.5" variant="white">
                                 <span
-                                    className="size-2 rounded-full rotate-45"
+                                    className="size-2 rounded-full rotate-45 border border-default-300"
                                     style={{
                                         background:
                                             item.color === "Multicolor"
                                                 ? "linear-gradient(violet, indigo, blue, green, yellow, orange, red)"
                                                 : getColor(item.color)?.value,
+                                        borderColor: colord(
+                                            getColor(item.color)?.value || "#000"
+                                        ).isDark()
+                                            ? "white"
+                                            : "black",
                                     }}
                                     aria-hidden="true"></span>
                                 {item.color}
                             </Badge>
                         )}
-                        {item.size && <Badge variant="outline">{item.size}</Badge>}
-                        {item.season && <Badge variant="secondary">{item.season}</Badge>}
+                        {item.size && <Badge variant="white">{item.size}</Badge>}
+                        {item.season && <Badge variant="white">{item.season}</Badge>}
                     </div>
                     {item.price !== null && (
                         <p className="text-lg font-bold text-green-400">${item.price.toFixed(2)}</p>

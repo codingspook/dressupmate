@@ -3,6 +3,7 @@ import Link from "next/link";
 import { Toaster } from "@/components/ui/toaster";
 import Head from "next/head";
 import { useEffect, useState } from "react";
+import BottomNavigation from "./bottom-navigation";
 
 interface LayoutProps {
     children: React.ReactNode;
@@ -23,9 +24,11 @@ export default function Layout({ children }: LayoutProps) {
                     content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0"
                 />
             </Head>
-            <div className="relative flex flex-col h-screen">
-                <Navbar />
-                <main className="container flex-grow px-6 pt-8 mx-auto max-w-7xl">{children}</main>
+            <Navbar />
+            <div className="relative flex flex-col min-h-screen pt-16 pb-[4.75rem] md:pb-4">
+                <main className="container flex-grow px-6 pt-8 mx-auto max-w-7xl mb-4">
+                    {children}
+                </main>
                 <footer className="flex items-center justify-center w-full py-3">
                     <Link
                         target="_blank"
@@ -34,11 +37,12 @@ export default function Layout({ children }: LayoutProps) {
                         href="https://github.com/codingspook"
                         title="codingspook github">
                         <span className="text-default-600">Made with ❤️ by</span>
-                        <p className="text-primary">codingspook</p>
+                        <p className="text-primary">👻 codingspook</p>
                     </Link>
                 </footer>
-                <Toaster />
             </div>
+            <BottomNavigation />
+            <Toaster />
         </>
     );
 }
