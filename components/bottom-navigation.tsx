@@ -7,8 +7,8 @@ const BottomNavigation = () => {
     const router = useRouter();
 
     return (
-        <div className="pb-safe bg-background">
-            <nav className="fixed bottom-0 left-0 right-0 flex lg:hidden justify-around items-center p-2 select-none z-10">
+        <div className="fixed bottom-0 left-0 right-0 pb-safe bg-background select-none z-10 border border-t-gray-900/5 dark:border-t-white/5">
+            <nav className="flex lg:hidden justify-around items-center p-2">
                 <Link
                     href="/closet"
                     className={`flex flex-col items-center text-sm px-4 py-2 rounded-2xl ${
