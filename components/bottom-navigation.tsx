@@ -1,9 +1,11 @@
 import { ShirtIcon, BlocksIcon, CogIcon } from "lucide-react";
-import router from "next/router";
+import { useRouter } from "next/router";
 import React from "react";
 import Link from "next/link";
 
 const BottomNavigation = () => {
+    const router = useRouter();
+
     return (
         <nav className="fixed bottom-0 left-0 right-0 flex lg:hidden justify-around items-center bg-background p-2 select-none z-10">
             <Link
