@@ -68,11 +68,6 @@ export default function ClosetPage({ categories, clothes: initialClothes }: Clos
     const scrollContainerRef = useRef<HTMLDivElement>(null);
     const [itemToDelete, setItemToDelete] = useState<ClothingItem | null>(null);
     const [selectedCategory, setSelectedCategory] = useState<string | undefined>(categories[0]?.id);
-    const [isDragging, setIsDragging] = useState(false);
-    const [startX, setStartX] = useState(0);
-    const [scrollLeft, setScrollLeft] = useState(0);
-    const [shouldPreventClick, setShouldPreventClick] = useState(false);
-    const dragStartPosRef = useRef<{ x: number; y: number } | null>(null);
     const [isSelectionMode, setIsSelectionMode] = useState(false);
     const [selectedItems, setSelectedItems] = useState<Set<string>>(new Set());
     const [favorites, setFavorites] = useState<ClothingItem[]>([]);
@@ -85,51 +80,7 @@ export default function ClosetPage({ categories, clothes: initialClothes }: Clos
         setFavorites(initialFavorites);
     }, [initialClothes]);
 
-    const handlePointerDown = (e: React.PointerEvent<HTMLDivElement>) => {
-        const container = scrollContainerRef.current;
-        if (!container) return;
-
-        dragStartPosRef.current = { x: e.clientX, y: e.clientY };
-        setIsDragging(true);
-        setShouldPreventClick(false);
-        setStartX(e.clientX - container.offsetLeft);
-        setScrollLeft(container.scrollLeft);
-        container.setPointerCapture(e.pointerId);
-    };
-
-    const handlePointerMove = (e: React.PointerEvent<HTMLDivElement>) => {
-        if (!isDragging || !dragStartPosRef.current) return;
-
-        const deltaX = Math.abs(e.clientX - dragStartPosRef.current.x);
-        const deltaY = Math.abs(e.clientY - dragStartPosRef.current.y);
-
-        // Se il movimento è significativo, previeni il click
-        if (deltaX > 5 || deltaY > 5) {
-            setShouldPreventClick(true);
-        }
-
-        const container = scrollContainerRef.current;
-        if (!container) return;
-
-        e.preventDefault();
-        const x = e.clientX - container.offsetLeft;
-        const walk = (x - startX) * 2;
-        container.scrollLeft = scrollLeft - walk;
-    };
-
-    const handlePointerUp = (e: React.PointerEvent<HTMLDivElement>) => {
-        setIsDragging(false);
-        dragStartPosRef.current = null;
-        if (scrollContainerRef.current) {
-            scrollContainerRef.current.releasePointerCapture(e.pointerId);
-        }
-    };
-
     const handleTabChange = (value: string) => {
-        if (shouldPreventClick) {
-            setShouldPreventClick(false);
-            return;
-        }
         setSelectedCategory(value);
     };
 
@@ -412,13 +363,8 @@ export default function ClosetPage({ categories, clothes: initialClothes }: Clos
                         />
                         <div
                             ref={scrollContainerRef}
-                            className={`flex gap-4 overflow-auto no-scrollbar cursor-grab active:cursor-grabbing touch-none ${
-                                isDragging ? "[&_*]:pointer-events-none" : ""
-                            }`}
-                            onPointerDown={handlePointerDown}
-                            onPointerMove={handlePointerMove}
-                            onPointerUp={handlePointerUp}
-                            onPointerLeave={handlePointerUp}>
+                            className="flex gap-4 overflow-auto no-scrollbar"
+                            onScroll={(e) => handleScroll(e.currentTarget.scrollLeft)}>
                             <TabsList className="gap-1 bg-transparent select-none">
                                 {categories.map((category) => (
                                     <TabsTrigger

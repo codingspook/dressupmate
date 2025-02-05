@@ -36,6 +36,12 @@ import { useEffect, useRef, useState } from "react";
 import { useForm } from "react-hook-form";
 import * as z from "zod";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "./ui/select";
+import { Calendar } from "@/components/ui/calendar";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { CalendarIcon } from "lucide-react";
+import { format } from "date-fns";
+import { it } from "date-fns/locale";
+import { cn } from "@/lib/utils";
 
 const formSchema = z.object({
     name: z.string().min(2, "Nome richiesto"),
@@ -45,6 +51,10 @@ const formSchema = z.object({
     category_id: z.string().optional(),
     image_url: z.string().optional(),
     photoFile: z.any().optional(),
+    notes: z.string().optional(),
+    price: z.number().optional(),
+    purchase_date: z.string().optional(),
+    season: z.string().optional(),
 });
 
 interface FormData {
@@ -121,6 +131,11 @@ function AddClothingForm({
             color: "",
             category_id: "",
             image_url: "",
+            // Rimosso: created_at, is_favorite, user_id
+            notes: "",
+            price: 0,
+            purchase_date: "",
+            season: "",
         },
     });
     const [photoPreview, setPhotoPreview] = useState<string | null>(null);
@@ -327,6 +342,112 @@ function AddClothingForm({
                             </FormItem>
                         )}
                     />
+
+                    <div className="grid md:grid-cols-2 gap-4">
+                        {/* Campo: Notes */}
+                        <FormField
+                            control={form.control}
+                            name="notes"
+                            render={({ field }) => (
+                                <FormItem>
+                                    <FormLabel>Note</FormLabel>
+                                    <FormControl>
+                                        <Input placeholder="Eventuali note" {...field} />
+                                    </FormControl>
+                                    <FormMessage />
+                                </FormItem>
+                            )}
+                        />
+                        {/* Campo: Price */}
+                        <FormField
+                            control={form.control}
+                            name="price"
+                            render={({ field }) => (
+                                <FormItem>
+                                    <FormLabel>Prezzo</FormLabel>
+                                    <FormControl>
+                                        <div className="relative">
+                                            <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-muted-foreground">
+                                                €
+                                            </span>
+                                            <Input
+                                                type="number"
+                                                placeholder="0"
+                                                {...field}
+                                                className="pl-8" // aggiunge padding per il prefisso
+                                            />
+                                        </div>
+                                    </FormControl>
+                                    <FormMessage />
+                                </FormItem>
+                            )}
+                        />
+                    </div>
+
+                    <div className="grid md:grid-cols-2 gap-4">
+                        {/* Campo: Purchase Date con Datepicker */}
+                        <FormField
+                            control={form.control}
+                            name="purchase_date"
+                            render={({ field }) => (
+                                <FormItem className="flex flex-col">
+                                    <FormLabel>Data acquisto</FormLabel>
+                                    <Popover>
+                                        <PopoverTrigger asChild>
+                                            <FormControl>
+                                                <Button
+                                                    variant={"outline"}
+                                                    className={cn(
+                                                        "w-full pl-3 text-left font-normal",
+                                                        !field.value && "text-muted-foreground"
+                                                    )}>
+                                                    {field.value ? (
+                                                        format(new Date(field.value), "PPP", {
+                                                            locale: it,
+                                                        })
+                                                    ) : (
+                                                        <span>Seleziona una data</span>
+                                                    )}
+                                                    <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+                                                </Button>
+                                            </FormControl>
+                                        </PopoverTrigger>
+                                        <PopoverContent className="w-auto p-0" align="start">
+                                            <Calendar
+                                                mode="single"
+                                                selected={
+                                                    field.value ? new Date(field.value) : undefined
+                                                }
+                                                onSelect={(date) =>
+                                                    field.onChange(date?.toISOString())
+                                                }
+                                                disabled={(date) =>
+                                                    date > new Date() ||
+                                                    date < new Date("1900-01-01")
+                                                }
+                                                initialFocus
+                                            />
+                                        </PopoverContent>
+                                    </Popover>
+                                    <FormMessage />
+                                </FormItem>
+                            )}
+                        />
+                        {/* Campo: Season */}
+                        <FormField
+                            control={form.control}
+                            name="season"
+                            render={({ field }) => (
+                                <FormItem>
+                                    <FormLabel>Stagione</FormLabel>
+                                    <FormControl>
+                                        <Input placeholder="Es: Estate" {...field} />
+                                    </FormControl>
+                                    <FormMessage />
+                                </FormItem>
+                            )}
+                        />
+                    </div>
 
                     <div className="space-y-2">
                         <label className="text-sm font-medium">Foto</label>
