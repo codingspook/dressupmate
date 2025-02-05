@@ -31,7 +31,7 @@ import { useToast } from "@/hooks/use-toast";
 import { Category, ClothingItem } from "@/types";
 import { createClient } from "@/utils/supabase/component";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Camera, Image, Plus, Trash } from "lucide-react";
+import { Camera, Image as ImageIcon, LoaderCircle, Plus, Trash } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { useForm } from "react-hook-form";
 import * as z from "zod";
@@ -60,6 +60,46 @@ interface AddClothingDialogProps {
     categories: Category[];
     onClothingAdded?: (newClothing: ClothingItem) => void;
 }
+
+// Add this utility function after imports
+const compressImage = async (file: File, maxWidth = 1200, quality = 0.7): Promise<Blob> => {
+    return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = (event) => {
+            const img = new Image();
+            img.onload = () => {
+                const canvas = document.createElement("canvas");
+                let width = img.width;
+                let height = img.height;
+
+                // Calculate new dimensions if image is too large
+                if (width > maxWidth) {
+                    height = Math.round((height * maxWidth) / width);
+                    width = maxWidth;
+                }
+
+                canvas.width = width;
+                canvas.height = height;
+                const ctx = canvas.getContext("2d");
+                ctx?.drawImage(img, 0, 0, width, height);
+
+                canvas.toBlob(
+                    (blob) => {
+                        if (blob) {
+                            resolve(blob);
+                        } else {
+                            reject(new Error("Canvas to Blob conversion failed"));
+                        }
+                    },
+                    "image/jpeg",
+                    quality
+                );
+            };
+            img.src = event.target?.result as string;
+        };
+        reader.readAsDataURL(file);
+    });
+};
 
 function AddClothingForm({
     className,
@@ -109,7 +149,7 @@ function AddClothingForm({
         }
     }, [showCamera]);
 
-    const capturePhoto = () => {
+    const capturePhoto = async () => {
         if (videoRef.current) {
             const canvas = document.createElement("canvas");
             canvas.width = videoRef.current.videoWidth;
@@ -119,11 +159,10 @@ function AddClothingForm({
             const photoUrl = canvas.toDataURL("image/jpeg");
             setPhotoPreview(photoUrl);
 
-            // Converti il dataURL in File
             canvas.toBlob((blob) => {
                 if (blob) {
                     const file = new File([blob], "photo.jpg", { type: "image/jpeg" });
-                    form.setValue("photoFile", file as any);
+                    form.setValue("photoFile", file);
                 }
             }, "image/jpeg");
 
@@ -137,7 +176,7 @@ function AddClothingForm({
 
     const fileInputRef = useRef<HTMLInputElement>(null);
 
-    const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
         const file = event.target.files?.[0];
         if (file) {
             const reader = new FileReader();
@@ -269,7 +308,7 @@ function AddClothingForm({
                         name="category_id"
                         render={({ field }) => (
                             <FormItem>
-                                <FormLabel>Categoria*</FormLabel>
+                                <FormLabel>Categoria</FormLabel>
                                 <Select onValueChange={field.onChange} value={field.value}>
                                     <FormControl>
                                         <SelectTrigger>
@@ -299,12 +338,16 @@ function AddClothingForm({
                                     className="w-full h-[300px] object-cover rounded-2xl border"
                                 />
                                 <Button
-                                    className="absolute bottom-3 left-1/2 -translate-x-1/2 rounded-2xl size-12 border-2 border-white p-0.5 bg-transparent"
+                                    className="absolute bottom-3 left-1/2 -translate-x-1/2 rounded-full size-12 p-0.5 bg-transparent border-white border-2 hover:!bg-transparent hover:p-0 transition-all group"
                                     type="button"
+                                    variant="default"
                                     onClick={capturePhoto}>
                                     <span className="sr-only">Cattura foto</span>
-                                    <span className="size-full flex items-center justify-center bg-white rounded-2xl">
-                                        <Camera size={24} />
+                                    <span className="size-full flex items-center justify-center bg-white rounded-full">
+                                        <Camera
+                                            className="group-hover:scale-125 transition-all"
+                                            size={24}
+                                        />
                                     </span>
                                 </Button>
                             </div>
@@ -350,7 +393,7 @@ function AddClothingForm({
                                                     type="button"
                                                     variant="link"
                                                     onClick={triggerFileUpload}>
-                                                    <Image size={16} />
+                                                    <ImageIcon size={16} />
                                                     Cambia immagine
                                                 </Button>
                                             )}
@@ -359,8 +402,8 @@ function AddClothingForm({
                                 ) : (
                                     <div className="w-full h-[300px] border rounded-2xl flex items-center justify-center">
                                         {isCameraLoading ? (
-                                            <div className="flex flex-col items-center gap-2 bg-gray-900">
-                                                <div className="animate-spin rounded-2xl h-8 w-8 border-b-2 border-gray-900" />
+                                            <div className="flex flex-col items-center gap-2 bg-background/60 border border-default-300 backdrop-blur-md p-4 rounded-2xl">
+                                                <LoaderCircle className="animate-spin" />
                                                 <p>Caricamento fotocamera...</p>
                                             </div>
                                         ) : (
@@ -378,7 +421,7 @@ function AddClothingForm({
                                                     onClick={triggerFileUpload}
                                                     variant="ghost"
                                                     className="gap-2">
-                                                    <Image />
+                                                    <ImageIcon />
                                                     Carica un&apos;immagine
                                                 </Button>
                                             </div>
@@ -401,7 +444,6 @@ function AddClothingForm({
 export function AddClothingDialog({ categories, onClothingAdded }: AddClothingDialogProps) {
     const [open, setOpen] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
-    const isDesktop = useMediaQuery("(min-width: 768px)");
     const isMobile = useMediaQuery("(max-width: 767px)");
     const { toast } = useToast();
     const supabase = createClient();
@@ -413,10 +455,16 @@ export function AddClothingDialog({ categories, onClothingAdded }: AddClothingDi
             let image_url = "";
 
             if (data.photoFile) {
-                const fileName = `${Date.now()}-${data.photoFile.name}`;
+                // Compress the image before upload
+                const compressedBlob = await compressImage(data.photoFile);
+                const compressedFile = new File([compressedBlob], data.photoFile.name, {
+                    type: "image/jpeg",
+                });
+
+                const fileName = `${Date.now()}-${compressedFile.name}`;
                 const { data: uploadData, error: uploadError } = await supabase.storage
                     .from("clothes")
-                    .upload(fileName, data.photoFile);
+                    .upload(fileName, compressedFile);
 
                 if (uploadError) throw uploadError;
 
@@ -429,12 +477,19 @@ export function AddClothingDialog({ categories, onClothingAdded }: AddClothingDi
 
             const { photoFile, ...cleanData } = data;
 
+            const cleanDataValues = Object.entries(cleanData).filter(([k, v]) => {
+                console.log(v);
+                return v;
+            });
+
+            let newClothingData = Object.fromEntries(cleanDataValues);
+
             const { data: newClothing, error } = await supabase
                 .from("clothes")
                 .insert([
                     {
-                        ...cleanData,
-                        image_url,
+                        ...newClothingData,
+                        ...(image_url && { image_url }),
                     },
                 ])
                 .select()
@@ -465,7 +520,7 @@ export function AddClothingDialog({ categories, onClothingAdded }: AddClothingDi
         </Button>
     );
 
-    if (isDesktop) {
+    if (!isMobile) {
         return (
             <Dialog open={open} onOpenChange={setOpen}>
                 <DialogTrigger asChild>{Trigger}</DialogTrigger>

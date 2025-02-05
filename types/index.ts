@@ -14,20 +14,23 @@ export interface Category {
 }
 
 export interface ClothingItem {
-  id: string
-  name: string
-  brand: string | null
-  category_id: string | null
-  color: string | null
-  created_at: string | null
-  image_url: string | null
-  is_favorite: boolean | null
-  notes: string | null
-  price: number | null
-  purchase_date: string | null
-  season: string | null
-  size: string | null
-  user_id: string | null
+  id: string;
+  name: string;
+  imageUrl: string;
+  category: string;
+  isFavorite?: boolean;
+  brand: string | null;
+  category_id: string | null;
+  color: string | null;
+  created_at: string | null;
+  image_url: string | null;
+  is_favorite: boolean | null;
+  notes: string | null;
+  price: number | null;
+  purchase_date: string | null;
+  season: string | null;
+  size: string | null;
+  user_id: string | null;
 }
 
 export interface Outfit {

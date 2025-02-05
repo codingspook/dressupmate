@@ -8,33 +8,55 @@ import {
     DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Button } from "@/components/ui/button";
-import { ClothingCard } from "./clothing-card";
+import { ClothingCard } from "@/components/clothing-card";
+import EmptyList from "./empty-list";
 
 interface ClothesGridProps {
     items: ClothingItem[];
-    onEdit: (item: ClothingItem) => void;
-    onDelete: (item: ClothingItem) => void;
+    onEdit?: (item: ClothingItem) => void;
+    onDelete?: (item: ClothingItem) => void;
+    isSelectionMode?: boolean;
+    selectedItems?: Set<string>;
+    onToggleSelect?: (itemId: string) => void;
+    onToggleFavorite?: (item: ClothingItem) => void;
 }
 
-export function ClothesGrid({ items, onEdit, onDelete }: ClothesGridProps) {
+export function ClothesGrid({
+    items,
+    onEdit,
+    onDelete,
+    isSelectionMode,
+    selectedItems,
+    onToggleSelect,
+    onToggleFavorite,
+}: ClothesGridProps) {
     if (items.length === 0) {
         return (
-            <div className="flex flex-col items-center justify-center p-8 text-center border rounded-xl border-dashed min-h-[200px]">
-                <ShirtIcon className="w-12 h-12 text-muted-foreground/50" />
-                <p className="mt-4 text-lg font-medium text-muted-foreground">
-                    Nessun capo presente in questa categoria
-                </p>
-                <p className="text-sm text-muted-foreground">
-                    Aggiungi il tuo primo capo cliccando sul pulsante &quot;Aggiungi capo&quot;
-                </p>
-            </div>
+            <EmptyList
+                primaryMessage="Nessun capo in questa categoria"
+                secondaryMessage="Aggiungi il tuo primo capo cliccando sul pulsante appropriato"
+                IconComponent={ShirtIcon}
+                className="min-h-[200px]"
+            />
         );
     }
 
     return (
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div className="grid sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
             {items.map((item) => (
-                <ClothingCard key={item.id} item={item} onEdit={onEdit} onDelete={onDelete} />
+                <div
+                    key={item.id}
+                    className="relative group"
+                    onClick={() => isSelectionMode && onToggleSelect?.(item.id)}>
+                    <ClothingCard
+                        item={item}
+                        onEdit={() => onEdit?.(item)}
+                        onDelete={() => onDelete?.(item)}
+                        onToggleFavorite={() => onToggleFavorite?.(item)}
+                        disableActions={isSelectionMode}
+                        isSelected={isSelectionMode && selectedItems?.has(item.id)}
+                    />
+                </div>
             ))}
         </div>
     );

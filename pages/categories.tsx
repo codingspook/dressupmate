@@ -42,6 +42,44 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
     };
 };
 
+const CategoryItem = ({
+    category,
+    onEdit,
+    onDelete,
+}: {
+    category: Category;
+    onEdit: (category: Category) => void;
+    onDelete: (category: Category) => void;
+}) => {
+    const dragControls = useDragControls();
+
+    return (
+        <Reorder.Item
+            key={category.id}
+            value={category}
+            dragControls={dragControls}
+            dragListener={false}
+            className="flex items-center p-4 rounded-2xl border bg-card shadow-sm">
+            <div
+                onPointerDown={(e) => dragControls.start(e)}
+                className="cursor-grab active:cursor-grabbing">
+                <GripVertical className="w-5 h-5 mr-4 text-muted-foreground" />
+            </div>
+            <div className="flex-1">
+                <h3 className="font-medium select-none">{category.name}</h3>
+            </div>
+            <div className="flex space-x-2 ml-4">
+                <Button variant="outline" size="icon" onClick={() => onEdit(category)}>
+                    <Pencil className="w-4 h-4" />
+                </Button>
+                <Button variant="outline" size="icon" onClick={() => onDelete(category)}>
+                    <Trash2 className="w-4 h-4" />
+                </Button>
+            </div>
+        </Reorder.Item>
+    );
+};
+
 export default function CategoriesPage({ categories: initialCategories }: CategoriesPageProps) {
     const [categories, setCategories] = useState<Category[]>(initialCategories);
     const [isOpen, setIsOpen] = useState(false);
@@ -140,7 +178,7 @@ export default function CategoriesPage({ categories: initialCategories }: Catego
     };
 
     return (
-        <div className="container md:py-8 mx-auto">
+        <div className="container md:py-4 mx-auto">
             <div className="flex items-center justify-between mb-6">
                 <h1 className={title({ size: "sm" })}>Gestione Categorie</h1>
                 <Dialog open={isOpen} onOpenChange={setIsOpen}>
@@ -186,32 +224,15 @@ export default function CategoriesPage({ categories: initialCategories }: Catego
                 }}
                 className="space-y-3">
                 {categories.map((category) => (
-                    <Reorder.Item
+                    <CategoryItem
                         key={category.id}
-                        value={category}
-                        className="flex items-center p-4 rounded-2xl border bg-card shadow-sm">
-                        <GripVertical className="w-5 h-5 mr-4 cursor-grab active:cursor-grabbing text-muted-foreground" />
-                        <div className="flex-1">
-                            <h3 className="font-medium">{category.name}</h3>
-                        </div>
-                        <div className="flex space-x-2 ml-4">
-                            <Button
-                                variant="outline"
-                                size="icon"
-                                onClick={() => {
-                                    setEditingCategory(category);
-                                    setIsOpen(true);
-                                }}>
-                                <Pencil className="w-4 h-4" />
-                            </Button>
-                            <Button
-                                variant="outline"
-                                size="icon"
-                                onClick={() => setCategoryToDelete(category)}>
-                                <Trash2 className="w-4 h-4" />
-                            </Button>
-                        </div>
-                    </Reorder.Item>
+                        category={category}
+                        onEdit={(category) => {
+                            setEditingCategory(category);
+                            setIsOpen(true);
+                        }}
+                        onDelete={(category) => setCategoryToDelete(category)}
+                    />
                 ))}
             </Reorder.Group>
 
