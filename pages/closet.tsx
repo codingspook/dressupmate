@@ -21,6 +21,7 @@ import {
 import EmptyList from "@/components/empty-list";
 import { cn } from "@/lib/utils";
 import { Skeleton } from "@/components/ui/skeleton"; // Add this import
+import Head from "next/head";
 
 export default function ClosetPage() {
     const [clothes, setClothes] = useState<Record<string, ClothingItem[]>>({});
@@ -281,135 +282,79 @@ export default function ClosetPage() {
     };
 
     return (
-        <div className="container md:py-4 mx-auto">
-            <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                    <DropdownMenu>
-                        <DropdownMenuTrigger className="flex items-center gap-2">
-                            <h1 className={title({ size: "sm" })}>
-                                {currentView === "wardrobe" ? "Tutti i capi" : "Preferiti"}
-                            </h1>
-                            <ChevronDown className="size-5 mt-1" />
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent
-                            className="w-48"
-                            align="start"
-                            onCloseAutoFocus={(e) => e.preventDefault()}>
-                            <DropdownMenuItem
-                                className={cn(currentView === "wardrobe" && "font-medium")}
-                                onClick={() => setCurrentView("wardrobe")}>
-                                {currentView === "wardrobe" && (
-                                    <span className="text-primary">•</span>
-                                )}
-                                Tutti i capi
-                            </DropdownMenuItem>
-                            <DropdownMenuItem
-                                className={cn(currentView === "favorites" && "font-medium")}
-                                onClick={() => setCurrentView("favorites")}>
-                                {currentView === "favorites" && (
-                                    <span className="text-primary">•</span>
-                                )}
-                                Preferiti
-                            </DropdownMenuItem>
-                        </DropdownMenuContent>
-                    </DropdownMenu>
-                </div>
-                <div className="flex items-center gap-2">
-                    {isSelectionMode && selectedItems.size > 0 && (
-                        <Button onClick={handleBatchDelete} variant="destructive">
-                            Elimina ({selectedItems.size})
+        <>
+            <Head>
+                <title>Guardaroba - DressUpMate</title>
+            </Head>
+            <div className="container md:py-4 mx-auto">
+                <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                        <DropdownMenu>
+                            <DropdownMenuTrigger className="flex items-center gap-2">
+                                <h1 className={title({ size: "sm" })}>
+                                    {currentView === "wardrobe" ? "Tutti i capi" : "Preferiti"}
+                                </h1>
+                                <ChevronDown className="size-5 mt-1" />
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent
+                                className="w-48"
+                                align="start"
+                                onCloseAutoFocus={(e) => e.preventDefault()}>
+                                <DropdownMenuItem
+                                    className={cn(currentView === "wardrobe" && "font-medium")}
+                                    onClick={() => setCurrentView("wardrobe")}>
+                                    {currentView === "wardrobe" && (
+                                        <span className="text-primary">•</span>
+                                    )}
+                                    Tutti i capi
+                                </DropdownMenuItem>
+                                <DropdownMenuItem
+                                    className={cn(currentView === "favorites" && "font-medium")}
+                                    onClick={() => setCurrentView("favorites")}>
+                                    {currentView === "favorites" && (
+                                        <span className="text-primary">•</span>
+                                    )}
+                                    Preferiti
+                                </DropdownMenuItem>
+                            </DropdownMenuContent>
+                        </DropdownMenu>
+                    </div>
+                    <div className="flex items-center gap-2">
+                        {isSelectionMode && selectedItems.size > 0 && (
+                            <Button onClick={handleBatchDelete} variant="destructive">
+                                Elimina ({selectedItems.size})
+                            </Button>
+                        )}
+                        <Button onClick={toggleSelectionMode} variant="secondary">
+                            {isSelectionMode ? "Annulla" : "Seleziona"}
                         </Button>
-                    )}
-                    <Button onClick={toggleSelectionMode} variant="secondary">
-                        {isSelectionMode ? "Annulla" : "Seleziona"}
-                    </Button>
-                    {!isSelectionMode && (
-                        <AddClothingDialog
-                            categories={categories}
-                            onClothingAdded={handleClothingAdded}
-                        />
-                    )}
+                        {!isSelectionMode && (
+                            <AddClothingDialog
+                                categories={categories}
+                                onClothingAdded={handleClothingAdded}
+                            />
+                        )}
+                    </div>
                 </div>
-            </div>
 
-            {isLoading ? (
-                <div className="mt-6 space-y-6">
-                    <div className="flex gap-2 overflow-hidden">
-                        {[1, 2, 3, 4].map((i) => (
-                            <Skeleton key={i} className="h-[2.875rem] w-32 rounded-2xl" />
-                        ))}
-                    </div>
-                    <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-                        {[1, 2, 3, 4, 5, 6].map((i) => (
-                            <Skeleton key={i} className="aspect-[2/3] rounded-2xl" />
-                        ))}
-                    </div>
-                </div>
-            ) : currentView === "favorites" ? (
-                <div className="mt-8">
-                    {favorites.length > 0 ? (
-                        <ClothesGrid
-                            items={favorites}
-                            onEdit={handleEdit}
-                            onDelete={setItemToDelete}
-                            onToggleFavorite={handleToggleFavorite}
-                            isSelectionMode={isSelectionMode}
-                            selectedItems={selectedItems}
-                            onToggleSelect={handleToggleSelect}
-                        />
-                    ) : (
-                        <EmptyList
-                            primaryMessage="Nessun preferito"
-                            IconComponent={HeartIcon}
-                            secondaryMessage={
-                                <>
-                                    Aggiungi i tuoi capi preferiti cliccando su{" "}
-                                    <HeartIcon className="inline-block size-4" /> nella card del
-                                    capo.
-                                </>
-                            }
-                        />
-                    )}
-                </div>
-            ) : (
-                <Tabs value={selectedCategory} onValueChange={handleTabChange} className="mt-6">
-                    <div className="relative">
-                        <div
-                            className={`absolute left-0 top-0 bottom-0 w-8 bg-gradient-to-r from-background to-transparent pointer-events-none z-10 transition-opacity duration-200 ${
-                                showLeftShadow ? "opacity-100" : "opacity-0"
-                            }`}
-                        />
-                        <div
-                            className={`absolute right-0 top-0 bottom-0 w-8 bg-gradient-to-l from-background to-transparent pointer-events-none z-10 transition-opacity duration-200 ${
-                                showRightShadow ? "opacity-100" : "opacity-0"
-                            }`}
-                        />
-                        <div
-                            ref={scrollContainerRef}
-                            className="flex gap-4 overflow-auto no-scrollbar"
-                            onScroll={(e) => handleScroll(e.currentTarget.scrollLeft)}>
-                            <TabsList className="gap-1 bg-transparent select-none">
-                                {categories.map((category) => (
-                                    <TabsTrigger
-                                        key={category.id}
-                                        value={category.id}
-                                        className="group flex-1 p-3 data-[state=active]:bg-muted data-[state=active]:shadow-none rounded-2xl gap-2">
-                                        {category.name}
-                                        {clothes[category.id]?.length > 0 && (
-                                            <Badge className="min-w-[1.375rem] px-1 transition-opacity group-data-[state=inactive]:opacity-50 flex-none text-center flex justify-center">
-                                                {clothes[category.id]?.length}
-                                            </Badge>
-                                        )}
-                                    </TabsTrigger>
-                                ))}
-                            </TabsList>
+                {isLoading ? (
+                    <div className="mt-6 space-y-6">
+                        <div className="flex gap-2 overflow-hidden">
+                            {[1, 2, 3, 4].map((i) => (
+                                <Skeleton key={i} className="h-[2.875rem] w-32 rounded-2xl" />
+                            ))}
+                        </div>
+                        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                            {[1, 2, 3, 4, 5, 6].map((i) => (
+                                <Skeleton key={i} className="aspect-[2/3] rounded-2xl" />
+                            ))}
                         </div>
                     </div>
-
-                    {categories.map((category) => (
-                        <TabsContent key={category.id} value={category.id} className="mt-8">
+                ) : currentView === "favorites" ? (
+                    <div className="mt-8">
+                        {favorites.length > 0 ? (
                             <ClothesGrid
-                                items={clothes[category.id] || []}
+                                items={favorites}
                                 onEdit={handleEdit}
                                 onDelete={setItemToDelete}
                                 onToggleFavorite={handleToggleFavorite}
@@ -417,27 +362,88 @@ export default function ClosetPage() {
                                 selectedItems={selectedItems}
                                 onToggleSelect={handleToggleSelect}
                             />
-                        </TabsContent>
-                    ))}
-                </Tabs>
-            )}
-            <EditClothingDialog
-                item={editingItem}
-                categories={categories}
-                open={!!editingItem}
-                onOpenChange={(open) => !open && setEditingItem(null)}
-                onComplete={handleEditComplete}
-            />
-            {itemToDelete && (
-                <ConfirmDeleteDialog
-                    open={!!itemToDelete}
-                    onOpenChange={(open) => !open && setItemToDelete(null)}
-                    onConfirm={() => itemToDelete && handleDelete(itemToDelete)}
-                    title="Sei sicuro di voler eliminare questo capo?"
-                    description={`Questa azione non può essere annullata. Il capo "${itemToDelete.name}" verrà eliminato permanentemente.`}
+                        ) : (
+                            <EmptyList
+                                primaryMessage="Nessun preferito"
+                                IconComponent={HeartIcon}
+                                secondaryMessage={
+                                    <>
+                                        Aggiungi i tuoi capi preferiti cliccando su{" "}
+                                        <HeartIcon className="inline-block size-4" /> nella card del
+                                        capo.
+                                    </>
+                                }
+                            />
+                        )}
+                    </div>
+                ) : (
+                    <Tabs value={selectedCategory} onValueChange={handleTabChange} className="mt-6">
+                        <div className="relative">
+                            <div
+                                className={`absolute left-0 top-0 bottom-0 w-8 bg-gradient-to-r from-background to-transparent pointer-events-none z-10 transition-opacity duration-200 ${
+                                    showLeftShadow ? "opacity-100" : "opacity-0"
+                                }`}
+                            />
+                            <div
+                                className={`absolute right-0 top-0 bottom-0 w-8 bg-gradient-to-l from-background to-transparent pointer-events-none z-10 transition-opacity duration-200 ${
+                                    showRightShadow ? "opacity-100" : "opacity-0"
+                                }`}
+                            />
+                            <div
+                                ref={scrollContainerRef}
+                                className="flex gap-4 overflow-auto no-scrollbar"
+                                onScroll={(e) => handleScroll(e.currentTarget.scrollLeft)}>
+                                <TabsList className="gap-1 bg-transparent select-none">
+                                    {categories.map((category) => (
+                                        <TabsTrigger
+                                            key={category.id}
+                                            value={category.id}
+                                            className="group flex-1 p-3 data-[state=active]:bg-muted data-[state=active]:shadow-none rounded-2xl gap-2">
+                                            {category.name}
+                                            {clothes[category.id]?.length > 0 && (
+                                                <Badge className="min-w-[1.375rem] px-1 transition-opacity group-data-[state=inactive]:opacity-50 flex-none text-center flex justify-center">
+                                                    {clothes[category.id]?.length}
+                                                </Badge>
+                                            )}
+                                        </TabsTrigger>
+                                    ))}
+                                </TabsList>
+                            </div>
+                        </div>
+
+                        {categories.map((category) => (
+                            <TabsContent key={category.id} value={category.id} className="mt-8">
+                                <ClothesGrid
+                                    items={clothes[category.id] || []}
+                                    onEdit={handleEdit}
+                                    onDelete={setItemToDelete}
+                                    onToggleFavorite={handleToggleFavorite}
+                                    isSelectionMode={isSelectionMode}
+                                    selectedItems={selectedItems}
+                                    onToggleSelect={handleToggleSelect}
+                                />
+                            </TabsContent>
+                        ))}
+                    </Tabs>
+                )}
+                <EditClothingDialog
+                    item={editingItem}
+                    categories={categories}
+                    open={!!editingItem}
+                    onOpenChange={(open) => !open && setEditingItem(null)}
+                    onComplete={handleEditComplete}
                 />
-            )}
-        </div>
+                {itemToDelete && (
+                    <ConfirmDeleteDialog
+                        open={!!itemToDelete}
+                        onOpenChange={(open) => !open && setItemToDelete(null)}
+                        onConfirm={() => itemToDelete && handleDelete(itemToDelete)}
+                        title="Sei sicuro di voler eliminare questo capo?"
+                        description={`Questa azione non può essere annullata. Il capo "${itemToDelete.name}" verrà eliminato permanentemente.`}
+                    />
+                )}
+            </div>
+        </>
     );
 }
 

@@ -6,6 +6,7 @@ import { useI18n } from "@/locales";
 import { createClient } from "@/utils/supabase/server-props";
 import dayjs from "dayjs";
 import { GetServerSideProps } from "next";
+import Head from "next/head";
 import { Props } from "next/script";
 import { ReactElement } from "react";
 
@@ -51,6 +52,9 @@ export default function Home({ weatherData, locale }: IHomeProps) {
 
     return (
         <>
+            <Head>
+                <title>Home - DressUpMate</title>
+            </Head>
             <span className="text-xl">{dayjs().format("MMMM D, YYYY")}</span>
             <h1 className="mb-5 text-4xl font-bold">I tuoi outfit suggeriti di oggi</h1>
             <p className="mb-5 text-lg">
