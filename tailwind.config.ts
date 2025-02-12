@@ -59,5 +59,5 @@ export default {
 		}
 	},
 	darkMode: ["class"],
-	plugins: [require("tailwindcss-animate")],
+	plugins: [require("tailwindcss-animate"), require("tailwindcss-safe-area")],
 } satisfies Config;

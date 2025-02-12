@@ -16,7 +16,7 @@ export default function LoginPage() {
     const [password, setPassword] = useState("");
     const [error, setError] = useState<string | null>(null);
 
-    async function logIn() {
+    async function login() {
         setError(null);
         const { error } = await supabase.auth.signInWithPassword({ email, password });
         if (error) {
@@ -38,7 +38,12 @@ export default function LoginPage() {
                             <AlertDescription>{error}</AlertDescription>
                         </Alert>
                     )}
-                    <form className="space-y-4">
+                    <form
+                        className="space-y-4"
+                        onSubmit={(e) => {
+                            e.preventDefault();
+                            login();
+                        }}>
                         <div className="space-y-2">
                             <Label htmlFor="email">Email</Label>
                             <Input
@@ -58,9 +63,7 @@ export default function LoginPage() {
                             />
                         </div>
                         <div className="flex items-center justify-between">
-                            <Button type="button" onClick={logIn}>
-                                Log in
-                            </Button>
+                            <Button type="submit">Log in</Button>
                             <Link href="/sign-up" className="text-sm text-white hover:underline">
                                 Registrati
                             </Link>

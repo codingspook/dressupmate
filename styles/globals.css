@@ -67,7 +67,7 @@
 
 @layer utilities {
   .pb-safe {
-    padding-bottom: env(safe-area-inset-bottom);
+    padding-bottom: max(env(safe-area-inset-bottom), 20px);
   }
   
     .no-scrollbar::-webkit-scrollbar {
