@@ -11,7 +11,7 @@ import { createClient } from "@/utils/supabase/component";
 import { ReactElement, useState, useEffect, useRef } from "react";
 import { ConfirmDeleteDialog } from "@/components/confirm-delete-dialog";
 import { Button } from "@/components/ui/button";
-import { ChevronDown, HeartIcon } from "lucide-react"; // Aggiungi questo import
+import { ChevronDown, HeartIcon, ChevronUp } from "lucide-react";
 import {
     DropdownMenu,
     DropdownMenuContent,
@@ -39,6 +39,11 @@ export default function ClosetPage() {
     const [favorites, setFavorites] = useState<ClothingItem[]>([]);
     const [currentView, setCurrentView] = useState<"wardrobe" | "favorites">("wardrobe");
     const [isLoading, setIsLoading] = useState(true);
+    const [isTabsExpanded, setIsTabsExpanded] = useState(false);
+
+    const toggleTabsView = () => {
+        setIsTabsExpanded((prev) => !prev);
+    };
 
     // Recupera i capi dal database
     useEffect(() => {
@@ -93,6 +98,28 @@ export default function ClosetPage() {
 
     const handleTabChange = (value: string) => {
         setSelectedCategory(value);
+
+        // Scroll the selected tab into view
+        if (!isTabsExpanded) {
+            const selectedTab = document.querySelector(`[data-value="${value}"]`);
+            if (selectedTab && scrollContainerRef.current) {
+                const container = scrollContainerRef.current;
+                const tabRect = selectedTab.getBoundingClientRect();
+                const containerRect = container.getBoundingClientRect();
+
+                // Calculate the scroll position to center the tab
+                const scrollLeft =
+                    container.scrollLeft +
+                    (tabRect.left - containerRect.left) -
+                    containerRect.width / 2 +
+                    tabRect.width / 2;
+
+                container.scrollTo({
+                    left: scrollLeft,
+                    behavior: "smooth",
+                });
+            }
+        }
     };
 
     const handleScroll = (scrollLeft: number) => {
@@ -281,6 +308,29 @@ export default function ClosetPage() {
         }
     };
 
+    // Effettua lo scroll iniziale quando viene selezionata una categoria al caricamento
+    useEffect(() => {
+        if (selectedCategory && !isTabsExpanded) {
+            const selectedTab = document.querySelector(`[data-value="${selectedCategory}"]`);
+            if (selectedTab && scrollContainerRef.current) {
+                const container = scrollContainerRef.current;
+                const tabRect = selectedTab.getBoundingClientRect();
+                const containerRect = container.getBoundingClientRect();
+
+                const scrollLeft =
+                    container.scrollLeft +
+                    (tabRect.left - containerRect.left) -
+                    containerRect.width / 2 +
+                    tabRect.width / 2;
+
+                container.scrollTo({
+                    left: scrollLeft,
+                    behavior: "smooth",
+                });
+            }
+        }
+    }, [selectedCategory, isTabsExpanded]);
+
     return (
         <>
             <Head>
@@ -378,27 +428,52 @@ export default function ClosetPage() {
                     </div>
                 ) : (
                     <Tabs value={selectedCategory} onValueChange={handleTabChange} className="mt-6">
-                        <div className="relative">
+                        <div className="relative pr-11">
+                            <Button
+                                onClick={toggleTabsView}
+                                variant="secondary"
+                                size="sm"
+                                className={cn(
+                                    "absolute right-0 top-1 z-20 flex items-center gap-2"
+                                )}>
+                                <ChevronDown
+                                    className={cn("size-4 transition-all will-change-transform", {
+                                        "rotate-180": isTabsExpanded,
+                                    })}
+                                />
+                            </Button>
                             <div
                                 className={`absolute left-0 top-0 bottom-0 w-8 bg-gradient-to-r from-background to-transparent pointer-events-none z-10 transition-opacity duration-200 ${
-                                    showLeftShadow ? "opacity-100" : "opacity-0"
+                                    showLeftShadow && !isTabsExpanded ? "opacity-100" : "opacity-0"
                                 }`}
                             />
                             <div
-                                className={`absolute right-0 top-0 bottom-0 w-8 bg-gradient-to-l from-background to-transparent pointer-events-none z-10 transition-opacity duration-200 ${
-                                    showRightShadow ? "opacity-100" : "opacity-0"
+                                className={`absolute right-11 top-0 bottom-0 w-8 bg-gradient-to-l from-background to-transparent pointer-events-none z-10 transition-opacity duration-200 ${
+                                    showRightShadow && !isTabsExpanded ? "opacity-100" : "opacity-0"
                                 }`}
                             />
                             <div
                                 ref={scrollContainerRef}
-                                className="flex gap-4 overflow-auto no-scrollbar"
-                                onScroll={(e) => handleScroll(e.currentTarget.scrollLeft)}>
-                                <TabsList className="gap-1 bg-transparent select-none">
+                                onScroll={(e) =>
+                                    !isTabsExpanded && handleScroll(e.currentTarget.scrollLeft)
+                                }
+                                className={cn(
+                                    "relative",
+                                    isTabsExpanded
+                                        ? "flex flex-wrap gap-2 justify-start"
+                                        : "flex overflow-auto no-scrollbar rounded-2xl"
+                                )}>
+                                <TabsList
+                                    className={cn(
+                                        "gap-1 bg-transparent select-none",
+                                        isTabsExpanded ? "flex flex-wrap justify-start" : "flex"
+                                    )}>
                                     {categories.map((category) => (
                                         <TabsTrigger
                                             key={category.id}
                                             value={category.id}
-                                            className="group flex-1 p-3 data-[state=active]:bg-muted data-[state=active]:shadow-none rounded-2xl gap-2">
+                                            data-value={category.id}
+                                            className="group p-3 data-[state=active]:bg-muted data-[state=active]:shadow-none rounded-2xl gap-2">
                                             {category.name}
                                             {clothes[category.id]?.length > 0 && (
                                                 <Badge className="min-w-[1.375rem] px-1 transition-opacity group-data-[state=inactive]:opacity-50 flex-none text-center flex justify-center">

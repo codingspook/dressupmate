@@ -6,6 +6,8 @@ import {
     DialogHeader,
     DialogTitle,
     DialogTrigger,
+    DialogPortal,
+    DialogOverlay,
 } from "@/components/ui/dialog";
 import {
     Drawer,
@@ -40,8 +42,10 @@ import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { CalendarIcon } from "lucide-react";
 import { format } from "date-fns";
-import { it } from "date-fns/locale";
 import { cn } from "@/lib/utils";
+import { it } from "date-fns/locale";
+import ReactCrop, { centerCrop, makeAspectCrop, type Crop } from "react-image-crop";
+import "react-image-crop/dist/ReactCrop.css";
 
 const formSchema = z.object({
     name: z.string().min(2, "Nome richiesto"),
@@ -111,6 +115,172 @@ const compressImage = async (file: File, maxWidth = 1200, quality = 0.7): Promis
     });
 };
 
+function centerAspectCrop(mediaWidth: number, mediaHeight: number, aspect: number) {
+    return centerCrop(
+        makeAspectCrop(
+            {
+                unit: "%",
+                width: 90,
+            },
+            aspect,
+            mediaWidth,
+            mediaHeight
+        ),
+        mediaWidth,
+        mediaHeight
+    );
+}
+
+function CropDialog({
+    open,
+    onOpenChange,
+    image,
+    onCropComplete: onCropCompleteCallback,
+    onCancel,
+}: {
+    open: boolean;
+    onOpenChange: (open: boolean) => void;
+    image: string;
+    onCropComplete: (file: File) => void;
+    onCancel: () => void;
+}) {
+    const imgRef = useRef<HTMLImageElement>(null);
+    const [crop, setCrop] = useState<Crop>({
+        unit: "px",
+        x: 0,
+        y: 0,
+        width: 100,
+        height: 150,
+    });
+    const [completedCrop, setCompletedCrop] = useState<Crop | null>(null);
+
+    function onImageLoad(e: React.SyntheticEvent<HTMLImageElement>) {
+        const { width, height } = e.currentTarget;
+        setCrop(centerAspectCrop(width, height, 2 / 3));
+    }
+
+    const onCropComplete = async () => {
+        if (!completedCrop || !imgRef.current) return;
+
+        const canvas = document.createElement("canvas");
+        const image = imgRef.current;
+        const scaleX = image.naturalWidth / image.width;
+        const scaleY = image.naturalHeight / image.height;
+
+        canvas.width = completedCrop.width;
+        canvas.height = completedCrop.height;
+        const ctx = canvas.getContext("2d");
+
+        if (!ctx) {
+            throw new Error("No 2d context");
+        }
+
+        ctx.drawImage(
+            image,
+            completedCrop.x * scaleX,
+            completedCrop.y * scaleY,
+            completedCrop.width * scaleX,
+            completedCrop.height * scaleY,
+            0,
+            0,
+            completedCrop.width,
+            completedCrop.height
+        );
+
+        canvas.toBlob((blob) => {
+            if (blob) {
+                const file = new File([blob], "cropped.jpg", { type: "image/jpeg" });
+                onCropCompleteCallback(file);
+            }
+        }, "image/jpeg");
+
+        onOpenChange(false);
+    };
+
+    const getQualityInfo = (width: number, height: number) => {
+        if (width < 300 || height < 450) {
+            return {
+                text: "Qualità molto bassa",
+                color: "text-destructive",
+                hint: "Seleziona un'area più grande",
+            };
+        }
+        if (width < 500 || height < 750) {
+            return {
+                text: "Qualità bassa",
+                color: "text-yellow-500",
+                hint: "Aumenta l'area di selezione se possibile",
+            };
+        }
+        return;
+    };
+
+    return (
+        <Dialog open={open} onOpenChange={onOpenChange} modal>
+            <DialogPortal>
+                <DialogOverlay className="bg-background/80 backdrop-blur-md z-[100]" />
+                <DialogContent className="sm:max-w-lg z-[101]">
+                    <DialogHeader>
+                        <DialogTitle>Ritaglia l'immagine</DialogTitle>
+                    </DialogHeader>
+                    <div className="relative flex justify-center w-full overflow-hidden rounded-3xl border">
+                        <ReactCrop
+                            crop={crop}
+                            onChange={(c) => setCrop(c)}
+                            onComplete={(c) => setCompletedCrop(c)}
+                            aspect={2 / 3}
+                            ruleOfThirds
+                            className="max-h-[60vh]"
+                            renderSelectionAddon={() => {
+                                if (!imgRef.current) return null;
+                                const scaleX = imgRef.current.naturalWidth / imgRef.current.width;
+                                const actualWidth = Math.round(crop.width * scaleX);
+                                const actualHeight = Math.round(crop.height * scaleX);
+
+                                const qualityInfo = getQualityInfo(actualWidth, actualHeight);
+
+                                return (
+                                    <div className="absolute bottom-4 left-1/2 -translate-x-1/2 bg-black/50 text-white px-2 py-1 rounded-lg text-sm flex flex-col items-center gap-1">
+                                        <span className="block text-nowrap">
+                                            {actualWidth} × {actualHeight}px
+                                        </span>
+                                        {qualityInfo && (
+                                            <>
+                                                <span className={cn("text-xs", qualityInfo.color)}>
+                                                    {qualityInfo.text}
+                                                </span>
+                                                {qualityInfo.hint && (
+                                                    <span className="text-xs opacity-75">
+                                                        {qualityInfo.hint}
+                                                    </span>
+                                                )}
+                                            </>
+                                        )}
+                                    </div>
+                                );
+                            }}>
+                            <img
+                                ref={imgRef}
+                                src={image}
+                                onLoad={onImageLoad}
+                                className="max-h-[60vh] w-auto"
+                            />
+                        </ReactCrop>
+                    </div>
+                    <div className="flex justify-end gap-2">
+                        <Button type="button" variant="outline" onClick={onCancel}>
+                            Annulla
+                        </Button>
+                        <Button type="button" onClick={onCropComplete}>
+                            Conferma
+                        </Button>
+                    </div>
+                </DialogContent>
+            </DialogPortal>
+        </Dialog>
+    );
+}
+
 function AddClothingForm({
     className,
     onSubmit,
@@ -131,95 +301,38 @@ function AddClothingForm({
             color: "",
             category_id: "",
             image_url: "",
-            // Rimosso: created_at, is_favorite, user_id
             notes: "",
             price: 0,
             purchase_date: "",
             season: "",
         },
     });
-    const [photoPreview, setPhotoPreview] = useState<string | null>(null);
-    const videoRef = useRef<HTMLVideoElement>(null);
-    const [showCamera, setShowCamera] = useState(false);
-    const [stream, setStream] = useState<MediaStream | null>(null);
-    const [isCameraLoading, setIsCameraLoading] = useState(false);
-    const [isPhoto, setIsPhoto] = useState(false);
 
-    const startCamera = async () => {
-        setIsCameraLoading(true);
-        try {
-            const stream = await navigator.mediaDevices.getUserMedia({ video: true });
-            setStream(stream);
-            setShowCamera(true);
-        } catch (err) {
-            console.error("Errore nell'accesso alla fotocamera:", err);
-        } finally {
-            setIsCameraLoading(false);
-        }
-    };
+    const [upImg, setUpImg] = useState<string>();
+    const [isCropping, setIsCropping] = useState(false);
 
-    useEffect(() => {
-        if (showCamera && videoRef.current && stream) {
-            videoRef.current.srcObject = stream;
-        }
-    }, [showCamera]);
-
-    const capturePhoto = async () => {
-        if (videoRef.current) {
-            const canvas = document.createElement("canvas");
-            canvas.width = videoRef.current.videoWidth;
-            canvas.height = videoRef.current.videoHeight;
-            canvas.getContext("2d")?.drawImage(videoRef.current, 0, 0);
-
-            const photoUrl = canvas.toDataURL("image/jpeg");
-            setPhotoPreview(photoUrl);
-
-            canvas.toBlob((blob) => {
-                if (blob) {
-                    const file = new File([blob], "photo.jpg", { type: "image/jpeg" });
-                    form.setValue("photoFile", file);
-                }
-            }, "image/jpeg");
-
-            // Ferma la fotocamera
-            const stream = videoRef.current.srcObject as MediaStream;
-            stream.getTracks().forEach((track) => track.stop());
-            setShowCamera(false);
-            setIsPhoto(true);
-        }
-    };
-
-    const fileInputRef = useRef<HTMLInputElement>(null);
-
-    const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
-        const file = event.target.files?.[0];
-        if (file) {
+    const onSelectFile = (e: React.ChangeEvent<HTMLInputElement>) => {
+        if (e.target.files && e.target.files.length > 0) {
             const reader = new FileReader();
-            reader.onloadend = () => {
-                setPhotoPreview(reader.result as string);
-                form.setValue("photoFile", file);
-            };
-            reader.readAsDataURL(file);
-            setIsPhoto(false);
+            reader.addEventListener("load", () => {
+                setUpImg(reader.result?.toString() || "");
+                setIsCropping(true);
+            });
+            reader.readAsDataURL(e.target.files[0]);
         }
     };
 
-    const triggerFileUpload = () => {
-        fileInputRef.current?.click();
+    const handleCropComplete = (file: File) => {
+        form.setValue("photoFile", file);
+        setIsCropping(false);
+        setUpImg(undefined);
     };
 
-    const handleDeletePhoto = () => {
-        setPhotoPreview(null);
-        form.setValue("photoFile", undefined);
-        if (fileInputRef.current) {
-            fileInputRef.current.value = ""; // reset dell'input file
-        }
-        setIsPhoto(false);
-        if (stream) {
-            stream.getTracks().forEach((track) => track.stop()); // ferma la fotocamera se attiva
-        }
-        setStream(null);
-        setShowCamera(false);
+    const handleCropCancel = () => {
+        setIsCropping(false);
+        setUpImg(undefined);
+        const input = document.getElementById("image-upload") as HTMLInputElement;
+        if (input) input.value = "";
     };
 
     const handleFormSubmit = (data: z.infer<typeof formSchema>) => {
@@ -228,60 +341,118 @@ function AddClothingForm({
     };
 
     return (
-        <Form {...form}>
-            <form
-                onSubmit={form.handleSubmit(handleFormSubmit)}
-                className={`space-y-4 ${className}`}>
-                <div className="grid gap-4">
-                    <div className="grid md:grid-cols-2 gap-4">
-                        <FormField
-                            control={form.control}
-                            name="name"
-                            render={({ field }) => (
-                                <FormItem>
-                                    <FormLabel>Nome capo*</FormLabel>
-                                    <FormControl>
-                                        <Input placeholder="Es: Camicia bianca" {...field} />
-                                    </FormControl>
-                                    <FormMessage />
-                                </FormItem>
-                            )}
-                        />
-                        <FormField
-                            control={form.control}
-                            name="brand"
-                            render={({ field }) => (
-                                <FormItem>
-                                    <FormLabel>Marca</FormLabel>
-                                    <FormControl>
-                                        <Input placeholder="Es: Nike" {...field} />
-                                    </FormControl>
-                                    <FormMessage />
-                                </FormItem>
-                            )}
-                        />
-                    </div>
-
+        <>
+            <Form {...form}>
+                <form
+                    onSubmit={form.handleSubmit(handleFormSubmit)}
+                    className={`space-y-4 ${className}`}>
                     <div className="grid gap-4">
+                        <div className="grid md:grid-cols-2 gap-4">
+                            <FormField
+                                control={form.control}
+                                name="name"
+                                render={({ field }) => (
+                                    <FormItem>
+                                        <FormLabel>Nome capo*</FormLabel>
+                                        <FormControl>
+                                            <Input placeholder="Es: Camicia bianca" {...field} />
+                                        </FormControl>
+                                        <FormMessage />
+                                    </FormItem>
+                                )}
+                            />
+                            <FormField
+                                control={form.control}
+                                name="brand"
+                                render={({ field }) => (
+                                    <FormItem>
+                                        <FormLabel>Marca</FormLabel>
+                                        <FormControl>
+                                            <Input placeholder="Es: Nike" {...field} />
+                                        </FormControl>
+                                        <FormMessage />
+                                    </FormItem>
+                                )}
+                            />
+                        </div>
+
+                        <div className="grid gap-4">
+                            <FormField
+                                control={form.control}
+                                name="size"
+                                render={({ field }) => (
+                                    <FormItem className="space-y-2">
+                                        <FormLabel>Taglia</FormLabel>
+                                        <div className="flex flex-wrap gap-2">
+                                            {SIZES.map((size) => (
+                                                <FormControl key={size.value}>
+                                                    <Button
+                                                        type="button"
+                                                        variant={
+                                                            field.value === size.value
+                                                                ? "default"
+                                                                : "outline"
+                                                        }
+                                                        className="px-6 border border-input"
+                                                        onClick={() => field.onChange(size.value)}>
+                                                        {size.label}
+                                                    </Button>
+                                                </FormControl>
+                                            ))}
+                                        </div>
+                                        <FormMessage />
+                                    </FormItem>
+                                )}
+                            />
+                            <FormField
+                                control={form.control}
+                                name="color"
+                                render={({ field }) => (
+                                    <FormItem>
+                                        <FormLabel>Colore</FormLabel>
+                                        <div className="grid grid-cols-9 gap-2">
+                                            {BASIC_COLORS.map((color) => (
+                                                <Button
+                                                    key={color.value}
+                                                    type="button"
+                                                    variant="outline"
+                                                    className={`w-full aspect-square h-auto rounded-full p-0 ${
+                                                        field.value === color.name
+                                                            ? "ring-2 ring-primary"
+                                                            : ""
+                                                    }`}
+                                                    style={{ backgroundColor: color.value }}
+                                                    title={color.name}
+                                                    onClick={() =>
+                                                        field.onChange(color.name)
+                                                    }></Button>
+                                            ))}
+                                        </div>
+                                        <FormMessage />
+                                    </FormItem>
+                                )}
+                            />
+                        </div>
+
                         <FormField
                             control={form.control}
-                            name="size"
+                            name="category_id"
                             render={({ field }) => (
-                                <FormItem className="space-y-2">
-                                    <FormLabel>Taglia</FormLabel>
+                                <FormItem>
+                                    <FormLabel>Categoria</FormLabel>
                                     <div className="flex flex-wrap gap-2">
-                                        {SIZES.map((size) => (
-                                            <FormControl key={size.value}>
+                                        {categories.map((category) => (
+                                            <FormControl key={category.id}>
                                                 <Button
                                                     type="button"
                                                     variant={
-                                                        field.value === size.value
+                                                        field.value === category.id
                                                             ? "default"
                                                             : "outline"
                                                     }
-                                                    className={`px-6`}
-                                                    onClick={() => field.onChange(size.value)}>
-                                                    {size.label}
+                                                    className="border border-input rounded-2xl"
+                                                    onClick={() => field.onChange(category.id)}>
+                                                    {category.name}
                                                 </Button>
                                             </FormControl>
                                         ))}
@@ -290,275 +461,196 @@ function AddClothingForm({
                                 </FormItem>
                             )}
                         />
-                        <FormField
-                            control={form.control}
-                            name="color"
-                            render={({ field }) => (
-                                <FormItem>
-                                    <FormLabel>Colore</FormLabel>
-                                    <div className="grid grid-cols-5 gap-2">
-                                        {BASIC_COLORS.map((color) => (
-                                            <Button
-                                                key={color.value}
-                                                type="button"
-                                                variant="outline"
-                                                className={`w-full h-10 p-0 ${
-                                                    field.value === color.name
-                                                        ? "ring-2 ring-primary"
-                                                        : ""
-                                                }`}
-                                                style={{ backgroundColor: color.value }}
-                                                title={color.name}
-                                                onClick={() => field.onChange(color.name)}></Button>
-                                        ))}
-                                    </div>
-                                    <FormMessage />
-                                </FormItem>
-                            )}
-                        />
-                    </div>
 
-                    <FormField
-                        control={form.control}
-                        name="category_id"
-                        render={({ field }) => (
-                            <FormItem>
-                                <FormLabel>Categoria</FormLabel>
-                                <Select onValueChange={field.onChange} value={field.value}>
-                                    <FormControl>
-                                        <SelectTrigger>
-                                            <SelectValue placeholder="Seleziona categoria" />
-                                        </SelectTrigger>
-                                    </FormControl>
-                                    <SelectContent>
-                                        {categories.map((category) => (
-                                            <SelectItem key={category.id} value={category.id}>
-                                                {category.name}
-                                            </SelectItem>
-                                        ))}
-                                    </SelectContent>
-                                </Select>
-                                <FormMessage />
-                            </FormItem>
-                        )}
-                    />
+                        <div className="grid md:grid-cols-2 gap-4">
+                            {/* Campo: Notes */}
+                            <FormField
+                                control={form.control}
+                                name="notes"
+                                render={({ field }) => (
+                                    <FormItem>
+                                        <FormLabel>Note</FormLabel>
+                                        <FormControl>
+                                            <Input placeholder="Eventuali note" {...field} />
+                                        </FormControl>
+                                        <FormMessage />
+                                    </FormItem>
+                                )}
+                            />
+                            {/* Campo: Price */}
+                            <FormField
+                                control={form.control}
+                                name="price"
+                                render={({ field }) => (
+                                    <FormItem>
+                                        <FormLabel>Prezzo</FormLabel>
+                                        <FormControl>
+                                            <div className="relative">
+                                                <Input
+                                                    type="number"
+                                                    placeholder="0"
+                                                    {...field}
+                                                    className="pl-8"
+                                                />
+                                                <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-muted-foreground">
+                                                    €
+                                                </span>
+                                            </div>
+                                        </FormControl>
+                                        <FormMessage />
+                                    </FormItem>
+                                )}
+                            />
+                        </div>
 
-                    <div className="grid md:grid-cols-2 gap-4">
-                        {/* Campo: Notes */}
-                        <FormField
-                            control={form.control}
-                            name="notes"
-                            render={({ field }) => (
-                                <FormItem>
-                                    <FormLabel>Note</FormLabel>
-                                    <FormControl>
-                                        <Input placeholder="Eventuali note" {...field} />
-                                    </FormControl>
-                                    <FormMessage />
-                                </FormItem>
-                            )}
-                        />
-                        {/* Campo: Price */}
-                        <FormField
-                            control={form.control}
-                            name="price"
-                            render={({ field }) => (
-                                <FormItem>
-                                    <FormLabel>Prezzo</FormLabel>
-                                    <FormControl>
+                        <div className="grid md:grid-cols-2 gap-4">
+                            {/* Campo: Purchase Date con Datepicker */}
+                            <FormField
+                                control={form.control}
+                                name="purchase_date"
+                                render={({ field }) => (
+                                    <FormItem className="space-y-2">
+                                        <FormLabel>Data acquisto</FormLabel>
                                         <div className="relative">
-                                            <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-muted-foreground">
-                                                €
-                                            </span>
-                                            <Input
-                                                type="number"
-                                                placeholder="0"
-                                                {...field}
-                                                className="pl-8" // aggiunge padding per il prefisso
-                                            />
+                                            <Popover modal={true}>
+                                                <PopoverTrigger asChild>
+                                                    <Button
+                                                        variant={"outline"}
+                                                        className={cn(
+                                                            "w-full pl-3 text-left font-normal rounded-2xl",
+                                                            !field.value && "text-muted-foreground"
+                                                        )}
+                                                        type="button">
+                                                        {field.value ? (
+                                                            format(new Date(field.value), "PPP", {
+                                                                locale: it,
+                                                            })
+                                                        ) : (
+                                                            <span>Seleziona una data</span>
+                                                        )}
+                                                        <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+                                                    </Button>
+                                                </PopoverTrigger>
+                                                <PopoverContent
+                                                    className="w-auto p-0 z-[9999] rounded-2xl bg-background"
+                                                    align="start"
+                                                    side="bottom"
+                                                    sideOffset={4}>
+                                                    <Calendar
+                                                        locale={it}
+                                                        mode="single"
+                                                        selected={
+                                                            field.value
+                                                                ? new Date(field.value)
+                                                                : undefined
+                                                        }
+                                                        onSelect={(date) =>
+                                                            field.onChange(date?.toISOString())
+                                                        }
+                                                        disabled={(date) =>
+                                                            date > new Date() ||
+                                                            date < new Date("1900-01-01")
+                                                        }
+                                                        initialFocus
+                                                    />
+                                                </PopoverContent>
+                                            </Popover>
                                         </div>
-                                    </FormControl>
-                                    <FormMessage />
-                                </FormItem>
-                            )}
-                        />
-                    </div>
-
-                    <div className="grid md:grid-cols-2 gap-4">
-                        {/* Campo: Purchase Date con Datepicker */}
-                        <FormField
-                            control={form.control}
-                            name="purchase_date"
-                            render={({ field }) => (
-                                <FormItem className="flex flex-col">
-                                    <FormLabel>Data acquisto</FormLabel>
-                                    <Popover>
-                                        <PopoverTrigger asChild>
+                                        <FormMessage />
+                                    </FormItem>
+                                )}
+                            />
+                            {/* Campo: Season */}
+                            <FormField
+                                control={form.control}
+                                name="season"
+                                render={({ field }) => (
+                                    <FormItem>
+                                        <FormLabel>Stagione</FormLabel>
+                                        <Select onValueChange={field.onChange} value={field.value}>
                                             <FormControl>
-                                                <Button
-                                                    variant={"outline"}
-                                                    className={cn(
-                                                        "w-full pl-3 text-left font-normal",
-                                                        !field.value && "text-muted-foreground"
-                                                    )}>
-                                                    {field.value ? (
-                                                        format(new Date(field.value), "PPP", {
-                                                            locale: it,
-                                                        })
-                                                    ) : (
-                                                        <span>Seleziona una data</span>
-                                                    )}
-                                                    <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
-                                                </Button>
+                                                <SelectTrigger className="rounded-2xl">
+                                                    <SelectValue placeholder="Seleziona stagione" />
+                                                </SelectTrigger>
                                             </FormControl>
-                                        </PopoverTrigger>
-                                        <PopoverContent className="w-auto p-0" align="start">
-                                            <Calendar
-                                                mode="single"
-                                                selected={
-                                                    field.value ? new Date(field.value) : undefined
-                                                }
-                                                onSelect={(date) =>
-                                                    field.onChange(date?.toISOString())
-                                                }
-                                                disabled={(date) =>
-                                                    date > new Date() ||
-                                                    date < new Date("1900-01-01")
-                                                }
-                                                initialFocus
-                                            />
-                                        </PopoverContent>
-                                    </Popover>
-                                    <FormMessage />
-                                </FormItem>
-                            )}
-                        />
-                        {/* Campo: Season */}
-                        <FormField
-                            control={form.control}
-                            name="season"
-                            render={({ field }) => (
-                                <FormItem>
-                                    <FormLabel>Stagione</FormLabel>
-                                    <FormControl>
-                                        <Input placeholder="Es: Estate" {...field} />
-                                    </FormControl>
-                                    <FormMessage />
-                                </FormItem>
-                            )}
-                        />
-                    </div>
+                                            <SelectContent>
+                                                <SelectItem value="primavera">Primavera</SelectItem>
+                                                <SelectItem value="estate">Estate</SelectItem>
+                                                <SelectItem value="autunno">Autunno</SelectItem>
+                                                <SelectItem value="inverno">Inverno</SelectItem>
+                                            </SelectContent>
+                                        </Select>
+                                        <FormMessage />
+                                    </FormItem>
+                                )}
+                            />
+                        </div>
 
-                    <div className="space-y-2">
-                        <label className="text-sm font-medium">Foto</label>
-                        {showCamera ? (
-                            <div className="relative aspect-video">
-                                <video
-                                    ref={videoRef}
-                                    autoPlay
-                                    className="w-full h-[300px] object-cover rounded-2xl border"
-                                />
-                                <Button
-                                    className="absolute bottom-3 left-1/2 -translate-x-1/2 rounded-full size-12 p-0.5 bg-transparent border-white border-2 hover:!bg-transparent hover:p-0 transition-all group"
-                                    type="button"
-                                    variant="default"
-                                    onClick={capturePhoto}>
-                                    <span className="sr-only">Cattura foto</span>
-                                    <span className="size-full flex items-center justify-center bg-white rounded-full">
-                                        <Camera
-                                            className="group-hover:scale-125 transition-all"
-                                            size={24}
-                                        />
-                                    </span>
-                                </Button>
-                            </div>
-                        ) : (
-                            <div className="space-y-2">
+                        <div className="space-y-2">
+                            <label className="text-sm font-medium">Foto</label>
+                            <div className="flex flex-col gap-4">
                                 <input
                                     type="file"
-                                    ref={fileInputRef}
-                                    onChange={handleFileUpload}
                                     accept="image/*"
+                                    onChange={onSelectFile}
                                     className="hidden"
+                                    id="image-upload"
                                 />
-                                {photoPreview ? (
-                                    <div className="relative">
+                                <label htmlFor="image-upload">
+                                    <Button
+                                        type="button"
+                                        variant="outline"
+                                        className="w-full rounded-2xl"
+                                        asChild>
+                                        <span>
+                                            <ImageIcon className="mr-2 h-4 w-4" />
+                                            Carica un'immagine
+                                        </span>
+                                    </Button>
+                                </label>
+
+                                {form.watch("photoFile") && !isCropping && (
+                                    <div className="relative aspect-[2/3] w-full overflow-hidden rounded-xl border">
                                         <img
-                                            src={photoPreview}
+                                            src={URL.createObjectURL(form.watch("photoFile"))}
+                                            className="w-full h-full object-cover"
                                             alt="Preview"
-                                            className="w-full h-[300px] object-cover rounded-2xl border"
                                         />
-                                        <div className="absolute inset-0 bg-gradient-to-t from-background/80 to-30% to-transparent bg-opacity-0.5" />
                                         <Button
                                             type="button"
-                                            onClick={handleDeletePhoto}
-                                            variant="default"
+                                            variant="destructive"
                                             size="icon"
-                                            className="absolute top-2 right-2">
-                                            <Trash size={16} />
+                                            className="absolute top-2 right-2"
+                                            onClick={() => {
+                                                form.setValue("photoFile", undefined);
+                                                const input = document.getElementById(
+                                                    "image-upload"
+                                                ) as HTMLInputElement;
+                                                if (input) input.value = "";
+                                            }}>
+                                            <Trash className="h-4 w-4" />
                                         </Button>
-                                        <div className="absolute bottom-0 left-0 right-0 flex gap-2 justify-center p-4">
-                                            {isPhoto ? (
-                                                <Button
-                                                    type="button"
-                                                    variant="ghost"
-                                                    onClick={() => {
-                                                        setPhotoPreview(null);
-                                                        startCamera();
-                                                    }}>
-                                                    <Camera size={16} />
-                                                    Scatta un&apos; altra foto
-                                                </Button>
-                                            ) : (
-                                                <Button
-                                                    type="button"
-                                                    variant="link"
-                                                    onClick={triggerFileUpload}>
-                                                    <ImageIcon size={16} />
-                                                    Cambia immagine
-                                                </Button>
-                                            )}
-                                        </div>
-                                    </div>
-                                ) : (
-                                    <div className="w-full h-[300px] border rounded-2xl flex items-center justify-center">
-                                        {isCameraLoading ? (
-                                            <div className="flex flex-col items-center gap-2 bg-background/60 border border-default-300 backdrop-blur-md p-4 rounded-2xl">
-                                                <LoaderCircle className="animate-spin" />
-                                                <p>Caricamento fotocamera...</p>
-                                            </div>
-                                        ) : (
-                                            <div className="flex flex-col items-center gap-4">
-                                                <Button
-                                                    type="button"
-                                                    onClick={startCamera}
-                                                    variant="outline"
-                                                    className="gap-2">
-                                                    <Camera size={24} />
-                                                    Scatta una foto
-                                                </Button>
-                                                <Button
-                                                    type="button"
-                                                    onClick={triggerFileUpload}
-                                                    variant="ghost"
-                                                    className="gap-2">
-                                                    <ImageIcon />
-                                                    Carica un&apos;immagine
-                                                </Button>
-                                            </div>
-                                        )}
                                     </div>
                                 )}
                             </div>
-                        )}
+                        </div>
                     </div>
-                </div>
 
-                <Button type="submit" className="w-full" disabled={isLoading}>
-                    {isLoading ? "Salvataggio..." : "Salva"}
-                </Button>
-            </form>
-        </Form>
+                    <Button type="submit" className="w-full" disabled={isLoading}>
+                        {isLoading ? "Salvataggio..." : "Salva"}
+                    </Button>
+                </form>
+            </Form>
+            {upImg && (
+                <CropDialog
+                    open={isCropping}
+                    onOpenChange={setIsCropping}
+                    image={upImg}
+                    onCropComplete={handleCropComplete}
+                    onCancel={handleCropCancel}
+                />
+            )}
+        </>
     );
 }
 
@@ -666,7 +758,7 @@ export function AddClothingDialog({ categories, onClothingAdded }: AddClothingDi
         <Drawer open={open} onOpenChange={setOpen}>
             <DrawerTrigger asChild>{Trigger}</DrawerTrigger>
             <DrawerContent>
-                <div className="max-h-[80vh] overflow-y-auto">
+                <div className="max-h-[85vh] overflow-y-auto">
                     <DrawerHeader className="text-left">
                         <DrawerTitle>Aggiungi nuovo capo</DrawerTitle>
                         <DialogDescription>
