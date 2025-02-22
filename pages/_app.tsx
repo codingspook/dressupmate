@@ -5,6 +5,7 @@ import { ThemeProvider } from "next-themes";
 import { ReactElement, ReactNode } from "react";
 import { NextPage } from "next";
 import Head from "next/head";
+import { LayoutStoreProvider } from "@/contexts/layout-store";
 
 export type NextPageWithLayout<P = {}, IP = P> = NextPage<P, IP> & {
     getLayout?: (page: ReactElement) => ReactNode;
@@ -19,10 +20,12 @@ export default function App({ Component, pageProps }: AppPropsWithLayout) {
     const getLayout = Component.getLayout ?? ((page) => page);
 
     return (
-        <I18nProvider locale={pageProps.locale}>
-            <ThemeProvider attribute="class" defaultTheme="system">
-                {getLayout(<Component {...pageProps} />)}
-            </ThemeProvider>
-        </I18nProvider>
+        <LayoutStoreProvider>
+            <I18nProvider locale={pageProps.locale}>
+                <ThemeProvider attribute="class" defaultTheme="system">
+                    {getLayout(<Component {...pageProps} />)}
+                </ThemeProvider>
+            </I18nProvider>
+        </LayoutStoreProvider>
     );
 }

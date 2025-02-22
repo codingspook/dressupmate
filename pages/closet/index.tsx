@@ -22,8 +22,10 @@ import EmptyList from "@/components/empty-list";
 import { cn } from "@/lib/utils";
 import { Skeleton } from "@/components/ui/skeleton"; // Add this import
 import Head from "next/head";
+import { useMediaQuery } from "@/hooks/use-media-query";
 
 export default function ClosetPage() {
+    const isDesktop = useMediaQuery("(min-width: 1024px)");
     const [clothes, setClothes] = useState<Record<string, ClothingItem[]>>({});
     const [categories, setCategories] = useState<Category[]>([]);
     const [editingItem, setEditingItem] = useState<ClothingItem | null>(null);
@@ -40,6 +42,7 @@ export default function ClosetPage() {
     const [currentView, setCurrentView] = useState<"wardrobe" | "favorites">("wardrobe");
     const [isLoading, setIsLoading] = useState(true);
     const [isTabsExpanded, setIsTabsExpanded] = useState(false);
+    const [selectedItem, setSelectedItem] = useState<ClothingItem | null>(null);
 
     const toggleTabsView = () => {
         setIsTabsExpanded((prev) => !prev);
@@ -308,6 +311,12 @@ export default function ClosetPage() {
         }
     };
 
+    const handleItemClick = (item: ClothingItem) => {
+        if (!isSelectionMode) {
+            setSelectedItem(item);
+        }
+    };
+
     // Effettua lo scroll iniziale quando viene selezionata una categoria al caricamento
     useEffect(() => {
         if (selectedCategory && !isTabsExpanded) {
@@ -411,6 +420,7 @@ export default function ClosetPage() {
                                 isSelectionMode={isSelectionMode}
                                 selectedItems={selectedItems}
                                 onToggleSelect={handleToggleSelect}
+                                onItemClick={handleItemClick}
                             />
                         ) : (
                             <EmptyList
@@ -429,19 +439,22 @@ export default function ClosetPage() {
                 ) : (
                     <Tabs value={selectedCategory} onValueChange={handleTabChange} className="mt-6">
                         <div className="relative pr-11">
-                            <Button
-                                onClick={toggleTabsView}
-                                variant="secondary"
-                                size="sm"
-                                className={cn(
-                                    "absolute right-0 top-1 z-20 flex items-center gap-2"
-                                )}>
-                                <ChevronDown
-                                    className={cn("size-4 transition-all will-change-transform", {
-                                        "rotate-180": isTabsExpanded,
-                                    })}
-                                />
-                            </Button>
+                            {!isDesktop && (
+                                <Button
+                                    onClick={toggleTabsView}
+                                    variant="secondary"
+                                    size="sm"
+                                    className="absolute right-0 top-1 z-20 flex items-center gap-2">
+                                    <ChevronDown
+                                        className={cn(
+                                            "size-4 transition-all will-change-transform",
+                                            {
+                                                "rotate-180": isTabsExpanded,
+                                            }
+                                        )}
+                                    />
+                                </Button>
+                            )}
                             <div
                                 className={`absolute left-0 top-0 bottom-0 w-8 bg-gradient-to-r from-background to-transparent pointer-events-none z-10 transition-opacity duration-200 ${
                                     showLeftShadow && !isTabsExpanded ? "opacity-100" : "opacity-0"
@@ -496,16 +509,17 @@ export default function ClosetPage() {
                                     isSelectionMode={isSelectionMode}
                                     selectedItems={selectedItems}
                                     onToggleSelect={handleToggleSelect}
+                                    onItemClick={handleItemClick}
                                 />
                             </TabsContent>
                         ))}
                     </Tabs>
                 )}
                 <EditClothingDialog
-                    item={editingItem}
-                    categories={categories}
                     open={!!editingItem}
                     onOpenChange={(open) => !open && setEditingItem(null)}
+                    categories={categories}
+                    item={editingItem}
                     onComplete={handleEditComplete}
                 />
                 {itemToDelete && (

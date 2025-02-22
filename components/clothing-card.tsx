@@ -1,5 +1,6 @@
 import { Heart, MoreVertical } from "lucide-react";
 import { default as NextImage } from "next/image";
+import { motion } from "framer-motion";
 
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
@@ -16,6 +17,7 @@ import { useCallback, useEffect, useState } from "react";
 import { Button } from "./ui/button";
 import { ProgressiveBlur } from "./ui/progressive-blur";
 import { colord } from "colord";
+import { useTheme } from "next-themes";
 
 interface ClothingCardProps {
     item: ClothingItem;
@@ -40,6 +42,9 @@ export function ClothingCard({
 
     // Calcola la luminosità dell'immagine
     const [isBright, setIsBright] = useState(false);
+
+    const { resolvedTheme } = useTheme();
+
     useEffect(() => {
         if (!item.image_url) return;
         const img = new Image();
@@ -69,11 +74,10 @@ export function ClothingCard({
     }
 
     return (
-        <Card
+        <motion.div
             className={cn(
-                "w-full max-w-sm overflow-hidden relative aspect-[2/3] transition-all duration-200",
-                isSelected && "scale-95 ring-2 ring-primary ring-offset-2 ring-offset-background",
-                disableActions && "cursor-pointer"
+                "w-full max-w-sm relative aspect-[2/3] rounded-xl bg-card cursor-pointer",
+                isSelected && "scale-95 ring-2 ring-primary ring-offset-2 ring-offset-background"
             )}>
             {/* Indicatore di selezione */}
             {isSelected && (
@@ -90,27 +94,23 @@ export function ClothingCard({
             )}
 
             {/* Immagine di sfondo */}
-            <div className="absolute inset-0">
-                {item.image_url ? (
-                    <NextImage
-                        src={item.image_url}
-                        alt={item.name}
-                        layout="fill"
-                        objectFit="cover"
-                    />
-                ) : (
-                    <div className="flex items-center justify-center w-full h-full bg-background-800">
-                        <span className="text-foreground-600">No image</span>
-                    </div>
-                )}
-            </div>
+            <motion.div className="absolute inset-0" layoutId={`card-image-container-${item.id}`}>
+                <NextImage
+                    src={item.image_url || `/${resolvedTheme}-placeholder.png`}
+                    alt={item.name}
+                    fill
+                    className="object-cover rounded-3xl"
+                    sizes="(max-width: 768px) 50vw, (max-width: 1200px) 33vw, 25vw"
+                />
+            </motion.div>
 
-            {(isBright || !item.image_url) && (
-                <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-black/20 to-black/10 pointer-events-none" />
-            )}
+            <motion.div
+                className="absolute inset-0 bg-background/20"
+                layoutId={`card-gradient-${item.id}`}
+            />
 
             {/* Controlli superiori */}
-            <div className="absolute inset-x-0 top-0 h-24 z-[1] bg-gradient-to-b from-black/40 to-transparent" />
+            <div className="absolute inset-x-0 top-0 h-24 z-10" />
 
             {/* Menu e preferiti */}
             {!disableActions && (
@@ -156,13 +156,18 @@ export function ClothingCard({
             )}
 
             {/* Progressive blur layer */}
-            <ProgressiveBlur
-                className="pointer-events-none absolute bottom-0 left-0 h-[50%] w-full"
-                blurIntensity={6}
-            />
+            {/* <ProgressiveBlur
+                className={cn(
+                    "pointer-events-none absolute bottom-0 left-0 w-full rounded-3xl transition-all",
+                    isSelected ? "top-0" : "top-60"
+                )}
+                blurIntensity={1}
+            /> */}
 
             {/* Contenuto testuale */}
-            <div className="absolute inset-x-0 bottom-0 p-4 z-10">
+            <motion.div
+                className="absolute inset-x-0 bottom-0 p-4 z-10"
+                layoutId={`card-content-${item.id}`}>
                 <div className="text-white">
                     <h2 className="text-xl font-semibold mb-2">{item.name}</h2>
                     {item.brand && <p className="text-sm text-gray-200 mb-2">{item.brand}</p>}
@@ -198,7 +203,7 @@ export function ClothingCard({
                         </p>
                     )}
                 </div>
-            </div>
-        </Card>
+            </motion.div>
+        </motion.div>
     );
 }
