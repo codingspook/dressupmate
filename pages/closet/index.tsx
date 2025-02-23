@@ -23,6 +23,10 @@ import { cn } from "@/lib/utils";
 import { Skeleton } from "@/components/ui/skeleton"; // Add this import
 import Head from "next/head";
 import { useMediaQuery } from "@/hooks/use-media-query";
+import { ClothesCarousel } from "@/components/clothes-carousel";
+import { GridViewIcon, CarouselViewIcon } from "@/components/icons";
+import { ViewTabs, ViewTabsList, ViewTabsTrigger } from "@/components/ui/view-tabs";
+import { Separator } from "@/components/ui/separator";
 
 export default function ClosetPage() {
     const isDesktop = useMediaQuery("(min-width: 1024px)");
@@ -43,6 +47,7 @@ export default function ClosetPage() {
     const [isLoading, setIsLoading] = useState(true);
     const [isTabsExpanded, setIsTabsExpanded] = useState(false);
     const [selectedItem, setSelectedItem] = useState<ClothingItem | null>(null);
+    const [viewMode, setViewMode] = useState<"grid" | "carousel">("grid");
 
     const toggleTabsView = () => {
         setIsTabsExpanded((prev) => !prev);
@@ -379,6 +384,20 @@ export default function ClosetPage() {
                         </DropdownMenu>
                     </div>
                     <div className="flex items-center gap-2">
+                        {/* <ViewTabs
+                            value={viewMode}
+                            onValueChange={(value) => setViewMode(value as "grid" | "carousel")}
+                            className="w-auto">
+                            <ViewTabsList>
+                                <ViewTabsTrigger value="grid" aria-label="Vista griglia">
+                                    <GridViewIcon className="size-4" />
+                                </ViewTabsTrigger>
+                                <ViewTabsTrigger value="carousel" aria-label="Vista guardaroba">
+                                    <CarouselViewIcon className="size-4" />
+                                </ViewTabsTrigger>
+                            </ViewTabsList>
+                        </ViewTabs>
+                        <Separator orientation="vertical" className="h-6" /> */}
                         {isSelectionMode && selectedItems.size > 0 && (
                             <Button onClick={handleBatchDelete} variant="destructive">
                                 Elimina ({selectedItems.size})
@@ -412,16 +431,26 @@ export default function ClosetPage() {
                 ) : currentView === "favorites" ? (
                     <div className="mt-8">
                         {favorites.length > 0 ? (
-                            <ClothesGrid
-                                items={favorites}
-                                onEdit={handleEdit}
-                                onDelete={setItemToDelete}
-                                onToggleFavorite={handleToggleFavorite}
-                                isSelectionMode={isSelectionMode}
-                                selectedItems={selectedItems}
-                                onToggleSelect={handleToggleSelect}
-                                onItemClick={handleItemClick}
-                            />
+                            viewMode === "grid" ? (
+                                <ClothesGrid
+                                    items={favorites}
+                                    onEdit={handleEdit}
+                                    onDelete={setItemToDelete}
+                                    onToggleFavorite={handleToggleFavorite}
+                                    isSelectionMode={isSelectionMode}
+                                    selectedItems={selectedItems}
+                                    onToggleSelect={handleToggleSelect}
+                                    onItemClick={handleItemClick}
+                                />
+                            ) : (
+                                <ClothesCarousel
+                                    items={favorites}
+                                    onEdit={handleEdit}
+                                    onDelete={setItemToDelete}
+                                    onToggleFavorite={handleToggleFavorite}
+                                    onItemClick={handleItemClick}
+                                />
+                            )
                         ) : (
                             <EmptyList
                                 primaryMessage="Nessun preferito"
@@ -501,16 +530,26 @@ export default function ClosetPage() {
 
                         {categories.map((category) => (
                             <TabsContent key={category.id} value={category.id} className="mt-8">
-                                <ClothesGrid
-                                    items={clothes[category.id] || []}
-                                    onEdit={handleEdit}
-                                    onDelete={setItemToDelete}
-                                    onToggleFavorite={handleToggleFavorite}
-                                    isSelectionMode={isSelectionMode}
-                                    selectedItems={selectedItems}
-                                    onToggleSelect={handleToggleSelect}
-                                    onItemClick={handleItemClick}
-                                />
+                                {viewMode === "grid" ? (
+                                    <ClothesGrid
+                                        items={clothes[category.id] || []}
+                                        onEdit={handleEdit}
+                                        onDelete={setItemToDelete}
+                                        onToggleFavorite={handleToggleFavorite}
+                                        isSelectionMode={isSelectionMode}
+                                        selectedItems={selectedItems}
+                                        onToggleSelect={handleToggleSelect}
+                                        onItemClick={handleItemClick}
+                                    />
+                                ) : (
+                                    <ClothesCarousel
+                                        items={clothes[category.id] || []}
+                                        onEdit={handleEdit}
+                                        onDelete={setItemToDelete}
+                                        onToggleFavorite={handleToggleFavorite}
+                                        onItemClick={handleItemClick}
+                                    />
+                                )}
                             </TabsContent>
                         ))}
                     </Tabs>

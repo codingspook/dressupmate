@@ -80,7 +80,9 @@ function ExistingImagePreview({
             </div>
             {isDragActive && (
                 <div className="absolute inset-0 flex items-center justify-center bg-primary/5 rounded-2xl backdrop-blur-sm">
-                    <p className="text-primary font-medium">Rilascia per sostituire l'immagine</p>
+                    <p className="text-primary font-medium">
+                        Rilascia per sostituire l&apos;immagine
+                    </p>
                 </div>
             )}
         </div>
@@ -365,10 +367,10 @@ export function EditClothingForm({
                                         </SelectTrigger>
                                     </FormControl>
                                     <SelectContent>
-                                        <SelectItem value="primavera">Primavera</SelectItem>
-                                        <SelectItem value="estate">Estate</SelectItem>
-                                        <SelectItem value="autunno">Autunno</SelectItem>
-                                        <SelectItem value="inverno">Inverno</SelectItem>
+                                        <SelectItem value="spring">Primavera</SelectItem>
+                                        <SelectItem value="summer">Estate</SelectItem>
+                                        <SelectItem value="fall">Autunno</SelectItem>
+                                        <SelectItem value="winter">Inverno</SelectItem>
                                     </SelectContent>
                                 </Select>
                                 <FormMessage />

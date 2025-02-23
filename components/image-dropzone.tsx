@@ -56,7 +56,7 @@ export function ImageDropzone({ onFileSelect }: { onFileSelect: (file: File) => 
                             ) : (
                                 <>
                                     <span className="hidden md:inline">
-                                        Trascina qui un'immagine o{" "}
+                                        Trascina qui un&apos;immagine o{" "}
                                     </span>
                                     <span className="text-primary">seleziona un file</span>
                                 </>

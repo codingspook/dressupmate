@@ -27,7 +27,7 @@ export default function Layout({ children }: LayoutProps) {
             </Head>
             <Navbar />
             <div className="relative flex flex-col min-h-screen pt-16 pb-[4.75rem] md:pb-4">
-                <main className="container flex-grow px-6 pt-8 mx-auto max-w-7xl mb-4">
+                <main className="container flex-grow px-4 pt-8 mx-auto max-w-7xl mb-4">
                     {children}
                 </main>
                 <footer className="flex items-center justify-center w-full py-3 pb-safe">

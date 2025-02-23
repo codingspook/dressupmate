@@ -10,4 +10,10 @@ export default {
         'sport': 'Sportivo',
         'business_casual': 'Business'
     },
+    'seasons': {
+        'winter': 'Inverno',
+        'summer': 'Estate',
+        'fall': 'Autunno',
+        'spring': 'Primavera'
+    }
 } as const

@@ -5,19 +5,32 @@ import { useTheme } from "next-themes";
 import { Badge } from "./ui/badge";
 import { Button } from "./ui/button";
 import { ScrollArea, ScrollBar } from "./ui/scroll-area";
-import { X } from "lucide-react";
+import { X, Pencil, Trash2, Heart } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { BASIC_COLORS } from "@/config/constants";
 import { colord } from "colord";
 import { useState } from "react";
+import { useI18n } from "@/locales";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "./ui/tooltip";
 
 interface ClothingDetailsDialogProps {
     item: ClothingItem | null;
     onClose: () => void;
+    onEdit?: (item: ClothingItem) => void;
+    onDelete?: (item: ClothingItem) => void;
+    onToggleFavorite?: (item: ClothingItem) => void;
 }
 
-export function ClothingDetailsDialog({ item, onClose }: ClothingDetailsDialogProps) {
+export function ClothingDetailsDialog({
+    item,
+    onClose,
+    onEdit,
+    onDelete,
+    onToggleFavorite,
+}: ClothingDetailsDialogProps) {
     const { resolvedTheme } = useTheme();
+
+    const t = useI18n();
 
     if (!item) return null;
 
@@ -32,18 +45,18 @@ export function ClothingDetailsDialog({ item, onClose }: ClothingDetailsDialogPr
             exit={{ opacity: 0 }}
             className="fixed inset-0 z-50 flex items-center justify-center">
             <motion.div
-                className="fixed inset-0 bg-background/80 backdrop-blur-sm"
+                className="absolute inset-0 bg-background/80 backdrop-blur-sm"
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 exit={{ opacity: 0 }}
                 onClick={onClose}
             />
             <motion.div
-                className="z-50 w-full max-w-4xl bg-background rounded-3xl overflow-hidden"
+                className="z-50 w-full max-w-4xl bg-background rounded-3xl overflow-hidden border"
                 layoutId={`card-container-${item.id}`}>
                 <div className="flex flex-col md:flex-row">
                     <motion.div
-                        className="relative aspect-[2/3] md:w-1/2"
+                        className="relative aspect-[2/3] md:w-1/2 border-r"
                         layoutId={`card-image-container-${item.id}`}>
                         <Image
                             src={item.image_url || `/${resolvedTheme}-placeholder.png`}
@@ -54,7 +67,7 @@ export function ClothingDetailsDialog({ item, onClose }: ClothingDetailsDialogPr
                             priority
                         />
                         <motion.div
-                            className="absolute inset-0 bg-gradient-to-t from-black/30 via-black/0 to-black/20"
+                            className="absolute inset-0 bg-gradient-to-t from-black/0 via-black/0 to-black/0"
                             layoutId={`card-gradient-${item.id}`}
                         />
                     </motion.div>
@@ -62,16 +75,25 @@ export function ClothingDetailsDialog({ item, onClose }: ClothingDetailsDialogPr
                     <motion.div
                         initial={{ opacity: 0, x: 20 }}
                         animate={{ opacity: 1, x: 0 }}
-                        className="relative p-6 md:w-1/2">
-                        <Button
-                            variant="ghost"
-                            size="icon"
-                            className="absolute right-4 top-4 z-10"
-                            onClick={onClose}>
-                            <X className="size-4" />
-                        </Button>
+                        className="relative flex flex-col p-6 md:w-1/2">
+                        <TooltipProvider>
+                            <Tooltip>
+                                <TooltipTrigger asChild>
+                                    <Button
+                                        variant="secondary"
+                                        size="icon"
+                                        onClick={onClose}
+                                        className="absolute right-2 top-2 z-10">
+                                        <X className="size-4" />
+                                    </Button>
+                                </TooltipTrigger>
+                                <TooltipContent>
+                                    <p>Chiudi</p>
+                                </TooltipContent>
+                            </Tooltip>
+                        </TooltipProvider>
 
-                        <ScrollArea className="h-[calc(100vh-10rem)] md:h-[600px] pr-6">
+                        <ScrollArea className="flex-1 h-[calc(100vh-14rem)] md:h-[540px] pr-6">
                             <motion.div className="space-y-6" layoutId={`card-content-${item.id}`}>
                                 <div>
                                     <h2 className="text-2xl font-bold">{item.name}</h2>
@@ -85,7 +107,7 @@ export function ClothingDetailsDialog({ item, onClose }: ClothingDetailsDialogPr
                                         <h3 className="text-lg font-semibold mb-2">Colore</h3>
                                         <p className="text-muted-foreground flex items-center gap-2">
                                             <span
-                                                className="size-6 inline-block rounded-full rotate-45 border border-default-300"
+                                                className="size-6 inline-block rounded-full rotate-45 border"
                                                 style={{
                                                     background:
                                                         item.color === "Multicolor"
@@ -94,8 +116,8 @@ export function ClothingDetailsDialog({ item, onClose }: ClothingDetailsDialogPr
                                                     borderColor: colord(
                                                         getColor(item.color)?.value || "#000"
                                                     ).isDark()
-                                                        ? "white"
-                                                        : "black",
+                                                        ? "#e5e7eb"
+                                                        : "#4b5563",
                                                 }}
                                                 aria-hidden="true"
                                             />
@@ -113,7 +135,9 @@ export function ClothingDetailsDialog({ item, onClose }: ClothingDetailsDialogPr
                                 {item.season && (
                                     <div>
                                         <h3 className="text-lg font-semibold mb-2">Stagione</h3>
-                                        <p className="text-muted-foreground">{item.season}</p>
+                                        <p className="text-muted-foreground">
+                                            {t(`seasons.${item.season}`)}
+                                        </p>
                                     </div>
                                 )}
 
@@ -143,6 +167,30 @@ export function ClothingDetailsDialog({ item, onClose }: ClothingDetailsDialogPr
                             </motion.div>
                             <ScrollBar data-state="hidden" />
                         </ScrollArea>
+
+                        {/* Sezione pulsanti fissa in basso */}
+                        <div className="pt-4 mt-4 border-t bg-background/80 backdrop-blur-sm">
+                            <div className="flex gap-2">
+                                {onEdit && (
+                                    <Button
+                                        variant="outline"
+                                        className="flex-1"
+                                        onClick={() => onEdit(item)}>
+                                        <Pencil className="size-4 mr-2" />
+                                        Modifica
+                                    </Button>
+                                )}
+                                {onDelete && (
+                                    <Button
+                                        variant="destructive"
+                                        className="flex-1"
+                                        onClick={() => onDelete(item)}>
+                                        <Trash2 className="size-4 mr-2" />
+                                        Elimina
+                                    </Button>
+                                )}
+                            </div>
+                        </div>
                     </motion.div>
                 </div>
             </motion.div>

@@ -47,26 +47,27 @@ export function ClothesGrid({
         <>
             <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
                 {items.map((item) => (
-                    <motion.div
+                    <ClothingCard
                         key={item.id}
-                        layoutId={`card-container-${item.id}`}
-                        className="relative aspect-[2/3] rounded-2xl overflow-hidden group"
-                        onClick={() => {
-                            if (isSelectionMode) {
-                                onToggleSelect(item.id);
-                            } else {
-                                setSelectedId(item.id);
-                            }
-                        }}>
-                        <ClothingCard
-                            item={item}
-                            onEdit={() => onEdit?.(item)}
-                            onDelete={() => onDelete?.(item)}
-                            onToggleFavorite={() => onToggleFavorite?.(item)}
-                            disableActions={isSelectionMode}
-                            isSelected={isSelectionMode && selectedItems?.has(item.id)}
-                        />
-                    </motion.div>
+                        item={item}
+                        onClick={
+                            isSelectionMode
+                                ? (element) => onToggleSelect(item.id)
+                                : (element) => {
+                                      if (isSelectionMode) {
+                                          onToggleSelect(item.id);
+                                      } else {
+                                          setSelectedId(item.id);
+                                          onItemClick(item, element);
+                                      }
+                                  }
+                        }
+                        onEdit={() => onEdit?.(item)}
+                        onDelete={() => onDelete?.(item)}
+                        onToggleFavorite={() => onToggleFavorite?.(item)}
+                        disableActions={isSelectionMode}
+                        isSelected={isSelectionMode && selectedItems?.has(item.id)}
+                    />
                 ))}
             </div>
             <AnimatePresence>
@@ -74,6 +75,9 @@ export function ClothesGrid({
                     <ClothingDetailsDialog
                         item={selectedItem || null}
                         onClose={() => setSelectedId(null)}
+                        onEdit={onEdit}
+                        onDelete={onDelete}
+                        onToggleFavorite={onToggleFavorite}
                     />
                 )}
             </AnimatePresence>

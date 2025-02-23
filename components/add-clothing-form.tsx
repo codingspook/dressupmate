@@ -341,10 +341,10 @@ export function AddClothingForm({
                                                 </SelectTrigger>
                                             </FormControl>
                                             <SelectContent>
-                                                <SelectItem value="primavera">Primavera</SelectItem>
-                                                <SelectItem value="estate">Estate</SelectItem>
-                                                <SelectItem value="autunno">Autunno</SelectItem>
-                                                <SelectItem value="inverno">Inverno</SelectItem>
+                                                <SelectItem value="spring">Primavera</SelectItem>
+                                                <SelectItem value="summer">Estate</SelectItem>
+                                                <SelectItem value="fall">Autunno</SelectItem>
+                                                <SelectItem value="winter">Inverno</SelectItem>
                                             </SelectContent>
                                         </Select>
                                         <FormMessage />

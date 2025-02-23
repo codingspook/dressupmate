@@ -119,7 +119,7 @@ export function CropDialog({
                     className="sm:max-w-lg z-[101] rounded-3xl sm:rounded-3xl"
                     style={{ width: "calc(100% - 32px)", margin: "16px auto" }}>
                     <DialogHeader>
-                        <DialogTitle>Ritaglia l'immagine</DialogTitle>
+                        <DialogTitle>Ritaglia l&apos;immagine</DialogTitle>
                     </DialogHeader>
                     <div className="relative flex justify-center w-full overflow-hidden rounded-3xl border">
                         <ReactCrop

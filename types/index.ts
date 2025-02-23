@@ -28,7 +28,7 @@ export interface ClothingItem {
   notes: string | null;
   price: number | null;
   purchase_date: string | null;
-  season: string | null;
+  season: "winter" | "summer" | "fall" | "spring" | null;
   size: string | null;
   user_id: string | null;
 }

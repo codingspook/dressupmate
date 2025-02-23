@@ -68,4 +68,19 @@
         -ms-overflow-style: none;
         scrollbar-width: none;
     }
+
+    .perspective {
+        perspective: 1000px;
+    }
+}
+
+
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+  body {
+    @apply bg-background text-foreground;
+  }
 }
