@@ -43,7 +43,7 @@ export function ClothingDetailsDialog({
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 z-50 flex items-center justify-center">
+            className="fixed inset-0 z-50 flex items-start md:items-center justify-center p-4 md:p-6">
             <motion.div
                 className="absolute inset-0 bg-background/80 backdrop-blur-sm"
                 initial={{ opacity: 0 }}
@@ -52,11 +52,11 @@ export function ClothingDetailsDialog({
                 onClick={onClose}
             />
             <motion.div
-                className="z-50 w-full max-w-4xl bg-background/70 backdrop-blur-sm rounded-3xl overflow-hidden border"
+                className="z-50 w-full max-w-4xl bg-background/70 backdrop-blur-sm rounded-3xl overflow-hidden border max-h-[95vh] md:max-h-[85vh]"
                 layoutId={`card-container-${item.id}`}>
-                <div className="flex flex-col md:flex-row">
+                <div className="flex flex-col md:flex-row h-full">
                     <motion.div
-                        className="relative aspect-[2/3] md:w-1/2 border-r"
+                        className="relative aspect-[2/3] h-[40vh] md:h-auto md:w-1/2 border-b md:border-b-0 md:border-r shrink-0"
                         layoutId={`card-image-container-${item.id}`}>
                         <Image
                             src={item.image_url || `/${resolvedTheme}-placeholder.png`}
@@ -75,7 +75,7 @@ export function ClothingDetailsDialog({
                     <motion.div
                         initial={{ opacity: 0, x: 20 }}
                         animate={{ opacity: 1, x: 0 }}
-                        className="relative flex flex-col p-6 md:w-1/2">
+                        className="relative flex flex-col p-4 md:p-6 md:w-1/2 h-[calc(55vh-2rem)] md:h-[85vh]">
                         <TooltipProvider>
                             <Tooltip>
                                 <TooltipTrigger asChild>
@@ -92,10 +92,10 @@ export function ClothingDetailsDialog({
                             </Tooltip>
                         </TooltipProvider>
 
-                        <ScrollArea
-                            hideScrollbar
-                            className="flex-1 h-[calc(100vh-14rem)] md:h-[540px] pr-6">
-                            <motion.div className="space-y-6" layoutId={`card-content-${item.id}`}>
+                        <ScrollArea className="flex-1 pr-4">
+                            <motion.div
+                                className="space-y-4 md:space-y-6"
+                                layoutId={`card-content-${item.id}`}>
                                 <div>
                                     <h2 className="text-2xl font-bold">{item.name}</h2>
                                     {item.brand && (
@@ -168,8 +168,7 @@ export function ClothingDetailsDialog({
                             </motion.div>
                         </ScrollArea>
 
-                        {/* Sezione pulsanti fissa in basso */}
-                        <div className="pt-4 mt-4 border-t bg-background/80 backdrop-blur-sm">
+                        <div className="pt-4 mt-2 border-t bg-background/80 backdrop-blur-sm">
                             <div className="flex gap-2">
                                 {onToggleFavorite && (
                                     <Button
