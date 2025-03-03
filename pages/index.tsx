@@ -134,7 +134,6 @@ export default function Home({ weatherData, locale }: IHomeProps) {
                         (letter) => letter.toUpperCase()
                     )}
                 </span>
-                <Button onClick={() => setIsMarquee(!isMarquee)}>Toggle Marquee</Button>
                 <h1 className="text-center font-bold tracking-tighter text-6xl lg:text-7xl mb-8">
                     Cosa <AuroraText>indosserai</AuroraText> oggi?
                 </h1>
