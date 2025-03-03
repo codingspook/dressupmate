@@ -635,7 +635,7 @@ export default function SettingsPage() {
 
                         {!activeSection && !showNameInput && (
                             <div className="text-center mt-6 text-muted-foreground">
-                                <p>Seleziona un'opzione per modificare le tue preferenze</p>
+                                <p>Seleziona un&apos;opzione per modificare le tue preferenze</p>
 
                                 {form.getValues().name && (
                                     <p className="mt-4 font-medium text-foreground">
