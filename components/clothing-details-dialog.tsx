@@ -52,7 +52,7 @@ export function ClothingDetailsDialog({
                 onClick={onClose}
             />
             <motion.div
-                className="z-50 w-full max-w-4xl bg-background rounded-3xl overflow-hidden border"
+                className="z-50 w-full max-w-4xl bg-background/70 backdrop-blur-sm rounded-3xl overflow-hidden border"
                 layoutId={`card-container-${item.id}`}>
                 <div className="flex flex-col md:flex-row">
                     <motion.div
@@ -81,9 +81,8 @@ export function ClothingDetailsDialog({
                                 <TooltipTrigger asChild>
                                     <Button
                                         variant="secondary"
-                                        size="icon"
                                         onClick={onClose}
-                                        className="absolute right-2 top-2 z-10">
+                                        className="absolute right-2 top-2 z-10 size-9 min-h-0 ring-offset-background focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2">
                                         <X className="size-4" />
                                     </Button>
                                 </TooltipTrigger>
@@ -93,7 +92,9 @@ export function ClothingDetailsDialog({
                             </Tooltip>
                         </TooltipProvider>
 
-                        <ScrollArea className="flex-1 h-[calc(100vh-14rem)] md:h-[540px] pr-6">
+                        <ScrollArea
+                            hideScrollbar
+                            className="flex-1 h-[calc(100vh-14rem)] md:h-[540px] pr-6">
                             <motion.div className="space-y-6" layoutId={`card-content-${item.id}`}>
                                 <div>
                                     <h2 className="text-2xl font-bold">{item.name}</h2>
@@ -165,12 +166,24 @@ export function ClothingDetailsDialog({
                                     </div>
                                 )}
                             </motion.div>
-                            <ScrollBar data-state="hidden" />
                         </ScrollArea>
 
                         {/* Sezione pulsanti fissa in basso */}
                         <div className="pt-4 mt-4 border-t bg-background/80 backdrop-blur-sm">
                             <div className="flex gap-2">
+                                {onToggleFavorite && (
+                                    <Button
+                                        variant="outline"
+                                        size="icon"
+                                        onClick={() => onToggleFavorite(item)}>
+                                        <Heart
+                                            className={cn(
+                                                "size-4",
+                                                item.is_favorite && "text-red-500 fill-current"
+                                            )}
+                                        />
+                                    </Button>
+                                )}
                                 {onEdit && (
                                     <Button
                                         variant="outline"

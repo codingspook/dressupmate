@@ -6,15 +6,15 @@ import { ThemeSwitch } from "./theme-switch";
 import { Separator } from "./ui/separator";
 import { useRouter } from "next/router";
 import { useMediaQuery } from "@/hooks/use-media-query";
+import { useTheme } from "next-themes";
 
 export default function Navbar() {
-    const [theme, setTheme] = useState<"light" | "dark">("light");
-    const router = useRouter();
+    const { resolvedTheme } = useTheme();
     const isMobile = useMediaQuery("(max-width: 767px)");
 
     useEffect(() => {
-        document.documentElement.classList.toggle("dark", theme === "dark");
-    }, [theme]);
+        document.documentElement.classList.toggle("dark", resolvedTheme === "dark");
+    }, [resolvedTheme]);
 
     return (
         <>

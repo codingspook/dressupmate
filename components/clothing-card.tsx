@@ -1,4 +1,11 @@
-import { Heart, MoreVertical, RulerIcon, Snowflake, ThermometerSnowflake } from "lucide-react";
+import {
+    Heart,
+    Leaf,
+    MoreVertical,
+    RulerIcon,
+    Snowflake,
+    ThermometerSnowflake,
+} from "lucide-react";
 import { default as NextImage } from "next/image";
 import { motion } from "framer-motion";
 
@@ -19,6 +26,7 @@ import { ProgressiveBlur } from "./ui/progressive-blur";
 import { colord } from "colord";
 import { useTheme } from "next-themes";
 import { useI18n } from "@/locales";
+import { FallLeaf } from "./icons";
 
 interface ClothingCardProps {
     item: ClothingItem;
@@ -103,19 +111,7 @@ export function ClothingCard({
                     </svg>
                 );
             case "fall":
-                return (
-                    <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        stroke="currentColor"
-                        className="size-4 text-yellow-600">
-                        <polyline points="20 4 20 10 14 10" />
-                        <polyline points="4 4 4 10 10 10" />
-                        <polyline points="14 20 20 20 20 14" />
-                        <polyline points="10 4 10 10 4 10" />
-                    </svg>
-                );
+                return <FallLeaf className="size-4" />;
             case "winter":
                 return <ThermometerSnowflake className="size-4" />;
             default:
@@ -178,7 +174,7 @@ export function ClothingCard({
                         <DropdownMenu modal={false}>
                             <DropdownMenuTrigger asChild>
                                 <Button
-                                    variant="ghostBlurred"
+                                    variant="blurred"
                                     size="icon"
                                     onClick={(e) => e.stopPropagation()}>
                                     <MoreVertical className="h-4 w-4" />
@@ -210,7 +206,7 @@ export function ClothingCard({
                 {!disableActions && (
                     <div className="absolute top-2 right-2 z-20">
                         <Button
-                            variant="ghostBlurred"
+                            variant="blurred"
                             size="icon"
                             onClick={(e) => {
                                 e.stopPropagation();

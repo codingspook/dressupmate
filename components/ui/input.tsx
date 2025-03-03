@@ -4,10 +4,10 @@ import { cn } from "@/lib/utils";
 
 const Input = React.forwardRef<
     HTMLInputElement,
-    React.ComponentProps<"input"> & { icon?: React.ReactNode }
->(({ className, type, icon, ...props }, ref) => {
+    React.ComponentProps<"input"> & { icon?: React.ReactNode; wrapperClassName?: string }
+>(({ className, type, icon, wrapperClassName, ...props }, ref) => {
     return (
-        <div className="relative">
+        <div className={cn("relative", wrapperClassName)}>
             {icon && <div className="absolute -translate-y-1/2 left-3 top-1/2">{icon}</div>}
             <input
                 type={type}

@@ -18,14 +18,15 @@ const buttonVariants = cva(
                 secondary:
                     "bg-secondary text-secondary-foreground [@media(hover:hover)]:hover:bg-secondary/80 min-h-10",
                 ghost: "[@media(hover:hover)]:hover:bg-accent [@media(hover:hover)]:hover:text-accent-foreground",
-                ghostBlurred:
-                    "[@media(hover:hover)]:hover:backdrop-blur-sm [@media(hover:hover)]:hover:bg-white/10 border border-transparent [@media(hover:hover)]:hover:border-background-300",
+                blurred:
+                    "backdrop-blur-sm bg-background/10 border border-background/5 [@media(hover:hover)]:hover:bg-background/20",
                 link: "text-primary underline-offset-4 [@media(hover:hover)]:hover:underline",
             },
             size: {
                 default: "h-10 px-4 py-2",
                 sm: "h-9 rounded-xl px-3",
                 lg: "h-11 rounded-xl px-8",
+                xl: "h-12 rounded-xl px-10",
                 icon: "h-10 w-10",
             },
         },

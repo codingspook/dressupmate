@@ -177,7 +177,7 @@ export function ClothesCarousel({
                         }}>
                         <div className="absolute top-2 right-2 z-30">
                             <Button
-                                variant="ghostBlurred"
+                                variant="blurred"
                                 size="icon"
                                 onClick={(e) => {
                                     e.stopPropagation();
