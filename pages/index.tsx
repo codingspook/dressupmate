@@ -15,6 +15,7 @@ import { ClothingItem } from "@/types";
 import Image from "next/image";
 import { Skeleton } from "@/components/ui/skeleton";
 import { promises as fs } from "fs";
+import path from "path";
 import { LoaderCircle, SendIcon } from "lucide-react";
 import { AuroraText } from "@/components/ui/aurora-text";
 import { ButtonAurora } from "@/components/ui/button-aurora";
@@ -53,17 +54,17 @@ export const getServerSideProps: GetServerSideProps<IHomeProps> = async (context
         `https://api.weatherapi.com/v1/current.json?key=${process.env.WEATHERAPI_API_KEY}&lang=it&q=chieti`
     ).then((r) => r.json());
 
-    const file = await fs.readFile(process.cwd() + "/weather/weather-conditions.json", "utf8");
+    // Fix paths using path.join for correct resolution in all environments
+    const weatherConditionsPath = path.join(process.cwd(), "weather", "weather-conditions.json");
+    const file = await fs.readFile(weatherConditionsPath, "utf8");
     const weatherConditions = JSON.parse(file);
 
     const conditionIconCode = weatherConditions.find(
         (c: any) => c.code === weatherData.current.condition.code
     ).icon;
 
-    const iconsMapFile = await fs.readFile(
-        process.cwd() + "/weather/weather-icons-mapping.json",
-        "utf8"
-    );
+    const iconsMapPath = path.join(process.cwd(), "weather", "weather-icons-mapping.json");
+    const iconsMapFile = await fs.readFile(iconsMapPath, "utf8");
     const iconsMap = JSON.parse(iconsMapFile);
 
     const iconPath = `/weather-icons/${
