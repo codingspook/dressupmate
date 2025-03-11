@@ -8,6 +8,11 @@ const nextConfig = {
     images: {
         domains: ["qnsayahexjstxxbjztvz.supabase.co"],
     },
+    // Configurazione per Turborepo
+    output: "standalone",
+    transpilePackages: ["ui"],
+    // Ottimizzazione build per Turborepo
+    reactStrictMode: true,
 };
 
 module.exports = nextConfig;

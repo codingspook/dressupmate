@@ -1,0 +1,8 @@
+
+
+> web@0.0.1 lint /Users/manueldicampli/Sites/dressupmate/apps/web
+> next lint
+
+Cannot read config file: /Users/manueldicampli/Sites/dressupmate/apps/web/.eslintrc.js
+Error: Unexpected token 'export'
+[41m[30m ELIFECYCLE [39m[49m [31mCommand failed with exit code 1.[39m
